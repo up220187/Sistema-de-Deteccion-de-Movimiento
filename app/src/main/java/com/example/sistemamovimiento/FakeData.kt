@@ -33,13 +33,13 @@ object FakeData {
             "Movimiento detectado",
             "Puerta principal",
             "2025-02-12 15:32",
-            R.drawable.ic_secure_watch_logo
+            R.drawable.securewatch_logo
         ),
         FakeEvent(
             "Actividad inusual",
             "Patio trasero",
             "2025-02-11 08:12",
-            R.drawable.ic_secure_watch_logo
+            R.drawable.securewatch_logo
         )
     )
 

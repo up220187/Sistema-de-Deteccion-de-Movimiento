@@ -26,7 +26,7 @@ class HistoryActivity : AppCompatActivity() {
             intent.putExtra("location", event.location)
             intent.putExtra("timestamp", event.timestamp)
             // si tu item_event tiene imagen, podrías pasar un resource id; aquí usamos logo como placeholder
-            intent.putExtra("image_res", R.drawable.ic_secure_watch_logo)
+            intent.putExtra("image_res", R.drawable.securewatch_logo)
             startActivity(intent)
         }
 

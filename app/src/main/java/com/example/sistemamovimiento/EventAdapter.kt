@@ -30,7 +30,7 @@ class EventAdapter(
         holder.location.text = e.location
         holder.timestamp.text = e.timestamp
         // imagen placeholder
-        holder.thumb.setImageResource(e.imageRes ?: R.drawable.ic_secure_watch_logo)
+        holder.thumb.setImageResource(e.imageRes ?: R.drawable.securewatch_logo)
 
         holder.itemView.setOnClickListener { onClick(e) }
     }

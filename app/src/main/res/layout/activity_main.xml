@@ -10,14 +10,15 @@
 
     <ImageView
         android:id="@+id/logo_icon"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="174dp"
+        android:layout_height="153dp"
         android:layout_marginTop="64dp"
-        android:src="@drawable/ic_secure_watch_logo"
+        android:contentDescription="Logo de la aplicación SecureWatch"
+        android:src="@drawable/securewatch_logo"
+        app:layout_constraintBottom_toTopOf="@+id/cardView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:contentDescription="Logo de la aplicación SecureWatch" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_top"
@@ -27,17 +28,18 @@
         app:layout_constraintGuide_percent="0.35" />
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"
         app:cardBackgroundColor="@color/medium_blue"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:layout_constraintTop_toTopOf="@+id/guideline_top"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.0" >
+        app:layout_constraintTop_toTopOf="@+id/guideline_top"
+        app:layout_constraintVertical_bias="0.0">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -59,15 +61,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:hint="Correo Electrónico"
+                android:textColorHint="@color/light_gray"
                 app:boxStrokeColor="@color/accent_blue"
-                app:hintTextColor="@color/white"
-                android:textColorHint="@color/light_gray">
+                app:hintTextColor="@color/white">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_text_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -76,17 +79,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="Contraseña"
-                app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/light_gray"
+                android:textColorHint="@color/light_gray"
                 app:boxStrokeColor="@color/accent_blue"
                 app:hintTextColor="@color/white"
-                android:textColorHint="@color/light_gray">
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/light_gray">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_text_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -104,11 +108,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="24dp"
-                android:text="Iniciar sesión"
                 android:backgroundTint="@color/accent_blue"
+                android:text="Iniciar sesión"
                 android:textColor="@color/white"
                 android:textStyle="bold"
-                app:cornerRadius="8dp"/>
+                app:cornerRadius="8dp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

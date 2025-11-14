@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class DetailActivity : AppCompatActivity() {
@@ -23,7 +22,7 @@ class DetailActivity : AppCompatActivity() {
         val title = intent.getStringExtra("title")
         val location = intent.getStringExtra("location")
         val timestamp = intent.getStringExtra("timestamp")
-        val imageRes = intent.getIntExtra("image_res", R.drawable.ic_secure_watch_logo)
+        val imageRes = intent.getIntExtra("image_res", R.drawable.securewatch_logo)
 
         // Si quieres mostrar el título/location/timestamp, añade TextViews en tu layout y setéalos aquí.
         // Simulamos carga de imagen (1s)
