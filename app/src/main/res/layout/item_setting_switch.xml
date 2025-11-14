@@ -11,14 +11,14 @@
     android:layout_marginBottom="4dp">
 
     <TextView
-        android:id="@+id/text_setting_title"
+        android:id="@+id/setting_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Título de la Configuración"
         android:textColor="@color/white"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/setting_switch"
+        app:layout_constraintEnd_toStartOf="@id/setting_switch"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 

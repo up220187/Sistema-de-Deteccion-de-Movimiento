@@ -24,6 +24,12 @@ class SettingsActivity : AppCompatActivity() {
         val includeEmail = findViewById<View>(R.id.setting_alert_email)
         val includeSms = findViewById<View>(R.id.setting_alert_sms)
 
+        // Titulos
+        includeRealtime.findViewById<TextView>(R.id.setting_title).text = "Alertas en tiempo real"
+        includeEmail.findViewById<TextView>(R.id.setting_title).text = "Alertas por correo"
+        includeSms.findViewById<TextView>(R.id.setting_title).text = "Alertas por SMS"
+
+        // Switches
         val swRealtime = includeRealtime.findViewById<SwitchMaterial>(R.id.setting_switch)
         val swEmail = includeEmail.findViewById<SwitchMaterial>(R.id.setting_switch)
         val swSms = includeSms.findViewById<SwitchMaterial>(R.id.setting_switch)
