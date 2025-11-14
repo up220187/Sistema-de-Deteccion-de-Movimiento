@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_notifications"
+        android:icon="@drawable/ic_notification_bell"
+        android:title="Notificaciones"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_settings_menu"
+        android:icon="@drawable/ic_menu"
+        android:title="Menú"
+        app:showAsAction="always">
+
+        <menu>
+            <item
+                android:id="@+id/menu_history"
+                android:title="Historial"
+                android:icon="@drawable/ic_history"/>
+            <item
+                android:id="@+id/menu_settings"
+                android:title="Configuración"
+                android:icon="@drawable/ic_settings"/>
+            <item
+                android:id="@+id/menu_logout"
+                android:title="Cerrar Sesión"
+                android:icon="@drawable/ic_logout"/>
+        </menu>
+    </item>
+</menu>
