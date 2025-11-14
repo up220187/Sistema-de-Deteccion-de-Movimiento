@@ -16,7 +16,7 @@
 
         <!-- LOGIN -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".HomeActivity"
             android:exported="false" />
 
         <!-- DETALLE -->
