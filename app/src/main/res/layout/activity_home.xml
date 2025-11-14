@@ -19,9 +19,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/medium_blue"
+            app:menu="@menu/main_menu"
             app:title="SecureWatch"
-            app:titleTextColor="@color/white"
-            app:menu="@menu/main_menu" />
+            app:titleTextColor="@color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView

@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 
-
 // Importaciones necesarias para MPAndroidChart
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
@@ -30,19 +29,17 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
 
         // Inicializar el gráfico después de setContentView
-        barChart = findViewById(R.id.bar_chart_detections) // ID de la vista que definimos en el XML
+        barChart = findViewById(R.id.bar_chart_detections)
 
-        // --- TOOLBAR ---
+        // toolbar
         val toolbar = findViewById<Toolbar>(R.id.toolbar_main)
         setSupportActionBar(toolbar)
 
-        // --- STAT CARDS ---
-        // ... (Tu código actual para stat cards) ...
+        // cards
         val statToday = findViewById<android.view.View>(R.id.stat_today)
         val statWeek = findViewById<android.view.View>(R.id.stat_week)
         val statActive = findViewById<android.view.View>(R.id.stat_active)
 
-        // Valores falsos desde FakeData
         statToday.findViewById<TextView>(R.id.text_stat_value).text =
             FakeData.stats.today.toString()
         statToday.findViewById<TextView>(R.id.text_stat_label).text = "Hoy"
@@ -53,13 +50,10 @@ class HomeActivity : AppCompatActivity() {
         statActive.findViewById<TextView>(R.id.text_stat_value).text =
             FakeData.stats.active.toString()
         statActive.findViewById<TextView>(R.id.text_stat_label).text = "Activos"
-        // ... (Fin de tu código actual para stat cards) ...
 
-
-        // --- BOTONES ---
-        // ... (Tu código actual para botones) ...
+        // botones
         findViewById<Button>(R.id.button_view_details).setOnClickListener {
-            val e = FakeData.events[0]  // evento falso
+            val e = FakeData.events[0]
             val intent = Intent(this, DetailActivity::class.java)
             intent.putExtra("title", e.title)
             intent.putExtra("location", e.location)
@@ -70,76 +64,56 @@ class HomeActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button_deactivate).setOnClickListener {
             Toast.makeText(this, "Sensor desactivado (simulado)", Toast.LENGTH_SHORT).show()
         }
-        // ... (Fin de tu código actual para botones) ...
 
-        // LLAMADA PARA CONFIGURAR EL GRÁFICO
+        // Cargar gráfico
         setupBarChart()
     }
 
-    // -------------------------------
-    // FUNCIÓN PARA CONFIGURAR EL GRÁFICO DE BARRAS
-    // -------------------------------
+
     private fun setupBarChart() {
         val days = FakeData.weeklyDetections.map { it.day }
         val entries: ArrayList<BarEntry> = ArrayList()
 
-        // 1. Convertir los datos a entradas (Entries) para el gráfico
         FakeData.weeklyDetections.forEachIndexed { index, detection ->
-            // x = posición en el eje, y = valor de la detección
             entries.add(BarEntry(index.toFloat(), detection.count.toFloat()))
         }
 
-        // 2. Configurar el conjunto de datos (DataSet)
         val dataSet = BarDataSet(entries, "Detecciones por Día")
-        dataSet.color = getColor(R.color.accent_blue) // Utiliza tu color de acento
-        dataSet.valueTextColor = Color.WHITE // Color del valor encima de la barra
-        dataSet.valueTextSize = 12f // Tamaño del texto de valor
+        dataSet.color = getColor(R.color.accent_blue)
+        dataSet.valueTextColor = Color.WHITE
+        dataSet.valueTextSize = 12f
 
-        // 3. Crear el objeto BarData
         val barData = BarData(dataSet)
-        barData.barWidth = 0.9f // Ancho de las barras
-
-        // 4. Configurar el BarChart
         barChart.data = barData
-        barChart.setFitBars(true) // Ajustar las barras
+        barChart.setFitBars(true)
 
-        // Configuración de la apariencia
-        barChart.description.isEnabled = false // Ocultar la descripción
-        barChart.legend.isEnabled = false // Ocultar la leyenda
+        barChart.description.isEnabled = false
+        barChart.legend.isEnabled = false
 
-        // Eje X (Días de la semana)
         val xAxis = barChart.xAxis
-        xAxis.valueFormatter = IndexAxisValueFormatter(days) // Formatear para mostrar "Lun", "Mar", etc.
-        xAxis.position = XAxis.XAxisPosition.BOTTOM // Posición en la parte inferior
-        xAxis.setDrawGridLines(false) // Ocultar líneas de la cuadrícula
+        xAxis.valueFormatter = IndexAxisValueFormatter(days)
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.setDrawGridLines(false)
         xAxis.textColor = Color.WHITE
-        xAxis.granularity = 1f // Intervalo mínimo entre valores
+        xAxis.granularity = 1f
 
-        // Eje Y (Izquierda - Conteo de Detecciones)
         val yAxisLeft = barChart.axisLeft
         yAxisLeft.setDrawGridLines(true)
-        yAxisLeft.gridColor = Color.parseColor("#404040") // Color de la cuadrícula
+        yAxisLeft.gridColor = Color.parseColor("#404040")
         yAxisLeft.textColor = Color.WHITE
-        yAxisLeft.axisMinimum = 0f // Iniciar desde cero
-        yAxisLeft.granularity = 1f // Mostrar solo números enteros
+        yAxisLeft.axisMinimum = 0f
+        yAxisLeft.granularity = 1f
 
-        // Eje Y (Derecha - Ocultar)
         barChart.axisRight.isEnabled = false
 
-        // Configuración de interacción (opcional)
         barChart.setTouchEnabled(true)
         barChart.isDragEnabled = true
         barChart.setScaleEnabled(true)
         barChart.setPinchZoom(false)
 
-        // 5. Actualizar el gráfico
-        barChart.invalidate() // Redibujar el gráfico
+        barChart.invalidate()
     }
 
-
-    // -------------------------------
-    // MENU SUPERIOR (Mantenemos tu código)
-    // -------------------------------
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -149,34 +123,38 @@ class HomeActivity : AppCompatActivity() {
         return when (item.itemId) {
 
             R.id.action_notifications -> {
-                // Redirigir a la pantalla de detail
-                val intent = Intent(this, HistoryActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this, HistoryActivity::class.java))
                 true
             }
 
             R.id.menu_history -> {
-                // Redirigir a la pantalla de history
-                val intent = Intent(this, HistoryActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this, HistoryActivity::class.java))
                 true
             }
 
             R.id.menu_settings -> {
-                // Redirigir a la pantalla de config
-                val intent = Intent(this, SettingsActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this, SettingsActivity::class.java))
                 true
             }
 
             R.id.menu_logout -> {
-                // Redirigir a la pantalla de login (LoginActivity)
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
+                performLogout()
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
         }
+    }
+    private fun performLogout() {
+        val intent = Intent(this, MainActivity::class.java)
+
+        // LIMPIA TODA LA PILA Y EVITA REGRESAR
+        intent.flags =
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+
+        startActivity(intent)
+        finish() // destruye esta pantalla también
     }
 }
