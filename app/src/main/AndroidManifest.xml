@@ -14,27 +14,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SistemaMovimiento">
 
-        <!-- LOGIN -->
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
 
-        <!-- DETALLE -->
         <activity
             android:name=".DetailActivity"
             android:exported="false" />
 
-        <!-- HISTORIAL -->
         <activity
             android:name=".HistoryActivity"
             android:exported="false" />
 
-        <!-- SETTINGS -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false" />
 
-        <!-- MAIN: pantalla inicial -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
