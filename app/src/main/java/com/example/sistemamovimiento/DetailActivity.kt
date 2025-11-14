@@ -24,8 +24,6 @@ class DetailActivity : AppCompatActivity() {
         val timestamp = intent.getStringExtra("timestamp")
         val imageRes = intent.getIntExtra("image_res", R.drawable.securewatch_logo)
 
-        // Si quieres mostrar el título/location/timestamp, añade TextViews en tu layout y setéalos aquí.
-        // Simulamos carga de imagen (1s)
         progress.visibility = View.VISIBLE
         img.postDelayed({
             img.setImageResource(imageRes)

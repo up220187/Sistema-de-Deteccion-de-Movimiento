@@ -148,7 +148,6 @@ class HomeActivity : AppCompatActivity() {
     private fun performLogout() {
         val intent = Intent(this, MainActivity::class.java)
 
-        // LIMPIA TODA LA PILA Y EVITA REGRESAR
         intent.flags =
             Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TASK or
