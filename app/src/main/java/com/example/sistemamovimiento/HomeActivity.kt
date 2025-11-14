@@ -65,22 +65,30 @@ class HomeActivity : AppCompatActivity() {
         return when (item.itemId) {
 
             R.id.action_notifications -> {
-                Toast.makeText(this, "Notificaciones", Toast.LENGTH_SHORT).show()
+                // Redirigir a la pantalla de detail
+                val intent = Intent(this, DetailActivity::class.java)
+                startActivity(intent)
                 true
             }
 
             R.id.menu_history -> {
-                Toast.makeText(this, "Historial", Toast.LENGTH_SHORT).show()
+                // Redirigir a la pantalla de history
+                val intent = Intent(this, HistoryActivity::class.java)
+                startActivity(intent)
                 true
             }
 
             R.id.menu_settings -> {
-                Toast.makeText(this, "Configuración", Toast.LENGTH_SHORT).show()
+                // Redirigir a la pantalla de config
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
                 true
             }
 
             R.id.menu_logout -> {
-                Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show()
+                // Redirigir a la pantalla de login (LoginActivity)
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
                 true
             }
 
