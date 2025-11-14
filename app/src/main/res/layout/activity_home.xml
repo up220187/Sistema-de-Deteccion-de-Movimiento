@@ -117,12 +117,12 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"/>
 
-            <View
-                android:id="@+id/chart_placeholder"
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/bar_chart_detections"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:background="@color/medium_blue"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp"
+                android:padding="8dp" />
 
         </LinearLayout>
     </ScrollView>
