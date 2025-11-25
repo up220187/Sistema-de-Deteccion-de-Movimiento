@@ -14,20 +14,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SistemaMovimiento">
 
+
         <activity
-            android:name=".HomeActivity"
+            android:name=".HistoryFragment"
             android:exported="false" />
 
         <activity
-            android:name=".DetailActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".HistoryActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".SettingsActivity"
+            android:name=".SettingsFragment"
             android:exported="false" />
 
         <activity

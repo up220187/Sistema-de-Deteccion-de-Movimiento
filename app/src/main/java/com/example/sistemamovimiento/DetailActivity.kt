@@ -6,11 +6,11 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 
-class DetailActivity : AppCompatActivity() {
+class DetailFragment : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_detail)
+        setContentView(R.layout.fragment_detail)
 
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_detail)
         toolbar.setNavigationOnClickListener { finish() }

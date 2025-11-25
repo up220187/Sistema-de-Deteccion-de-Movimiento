@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_blue"
-    tools:context="com.example.sistemamovimiento.ui.main.HomeActivity">
+    tools:context=".ui.main.HomeFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -21,7 +21,7 @@
             android:background="@color/medium_blue"
             app:menu="@menu/main_menu"
             app:title="SecureWatch"
-            app:titleTextColor="@color/white" />
+            app:titleTextColor="@color/white"/>
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
@@ -44,23 +44,26 @@
                 android:weightSum="3"
                 android:layout_marginBottom="24dp">
 
-                <include layout="@layout/card_stat_item"
-                    android:id="@+id/stat_today"
-                    android:layout_weight="1"
+                <include
+                    android:id="@+id/statToday"
+                    layout="@layout/card_stat_item"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
 
-                <include layout="@layout/card_stat_item"
-                    android:id="@+id/stat_week"
-                    android:layout_weight="1"
+                <include
+                    android:id="@+id/statWeek"
+                    layout="@layout/card_stat_item"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
 
-                <include layout="@layout/card_stat_item"
-                    android:id="@+id/stat_active"
-                    android:layout_weight="1"
+                <include
+                    android:id="@+id/statActive"
+                    layout="@layout/card_stat_item"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
@@ -85,7 +88,7 @@
                         android:layout_marginTop="16dp">
 
                         <Button
-                            android:id="@+id/button_view_details"
+                            android:id="@+id/buttonViewDetails"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -94,7 +97,7 @@
                             android:layout_marginEnd="8dp"/>
 
                         <Button
-                            android:id="@+id/button_deactivate"
+                            android:id="@+id/buttonDeactivate"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -126,4 +129,5 @@
 
         </LinearLayout>
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

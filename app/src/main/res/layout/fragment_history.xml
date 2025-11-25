@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_blue"
-    tools:context="com.example.sistemamovimiento.ui.history.HistoryActivity">
+    tools:context="com.example.sistemamovimiento.ui.history.HistoryFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayoutHistory"

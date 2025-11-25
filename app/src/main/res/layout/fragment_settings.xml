@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/dark_blue"
-    tools:context="com.example.sistemamovimiento.ui.settings.SettingsActivity">
+    tools:context="com.example.sistemamovimiento.ui.settings.SettingsFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayoutSettings"
@@ -47,18 +47,21 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp" />
 
-            <include layout="@layout/item_setting_switch"
-                android:id="@+id/setting_alert_realtime"
+            <include
+                android:id="@+id/settingAlertRealtime"
+                layout="@layout/item_setting_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <include layout="@layout/item_setting_switch"
-                android:id="@+id/setting_alert_email"
+            <include
+                android:id="@+id/settingAlertEmail"
+                layout="@layout/item_setting_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <include layout="@layout/item_setting_switch"
-                android:id="@+id/setting_alert_sms"
+            <include
+                android:id="@+id/settingAlertSms"
+                layout="@layout/item_setting_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

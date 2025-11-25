@@ -34,3 +34,4 @@
         app:trackTint="@color/light_gray"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

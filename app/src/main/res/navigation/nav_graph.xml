@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <!-- LOGIN -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.sistemamovimiento.ui.login.FragmentLogin"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <!-- HOME -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.sistemamovimiento.ui.home.HomeFragment"
+        android:label="Inicio"
+        tools:layout="@layout/fragment_home">
+
+        <action
+            android:id="@+id/action_homeFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+
+
+
+    </fragment>
+
+    <!-- HISTORY -->
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.sistemamovimiento.ui.history.HistoryFragment"
+        android:label="Historial"
+        tools:layout="@layout/fragment_history">
+
+        <action
+            android:id="@+id/action_historyFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+    </fragment>
+
+    <!-- SETTINGS -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.sistemamovimiento.ui.settings.SettingsFragment"
+        android:label="Configuración"
+        tools:layout="@layout/fragment_settings" />
+
+    <!-- DETAILS -->
+    <fragment
+        android:id="@+id/detailFragment"
+        android:name="com.example.sistemamovimiento.ui.detail.DetailFragment"
+        android:label="Detalle"
+        tools:layout="@layout/fragment_detail">
+
+        <argument
+            android:name="title"
+            app:argType="string"
+            android:defaultValue="Sin título" />
+
+        <argument
+            android:name="location"
+            app:argType="string"
+            android:defaultValue="Ubicación desconocida" />
+
+        <argument
+            android:name="timestamp"
+            app:argType="string"
+            android:defaultValue="-" />
+
+        <argument
+            android:name="imageRes"
+            app:argType="reference"
+            android:defaultValue="@drawable/securewatch_logo" />
+    </fragment>
+
+</navigation>
