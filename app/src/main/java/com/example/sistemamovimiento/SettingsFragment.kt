@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast // Importa Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.sistemamovimiento.MainActivity
@@ -34,6 +35,23 @@ class SettingsFragment : Fragment() {
         }
 
         val prefs = requireContext().getSharedPreferences("SETTINGS", AppCompatActivity.MODE_PRIVATE)
+
+        // --- MANEJO DE OPCIONES DE CUENTA ---
+        binding.settingEditUsername.setOnClickListener {
+            // TODO: Implementar la navegación a la pantalla de edición de nombre de usuario o mostrar un Dialog
+            Toast.makeText(context, "Abrir edición de nombre de usuario", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.settingEditNumber.setOnClickListener {
+            // TODO: Implementar la navegación a la pantalla de edición de número o mostrar un Dialog
+            Toast.makeText(context, "Abrir edición de número", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.settingChangePassword.setOnClickListener {
+            // TODO: Implementar la navegación a la pantalla de cambio de contraseña o mostrar un Dialog
+            Toast.makeText(context, "Abrir cambio de contraseña", Toast.LENGTH_SHORT).show()
+        }
+        // --- FIN MANEJO DE OPCIONES DE CUENTA ---
 
         // --- INCLUDES USANDO VIEWBINDING ---
         val realtime = binding.settingAlertRealtime

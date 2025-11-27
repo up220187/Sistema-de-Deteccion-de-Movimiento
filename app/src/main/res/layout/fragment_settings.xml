@@ -40,6 +40,109 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Cuenta"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/setting_edit_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="12dp"
+                android:background="@color/medium_blue"
+                android:layout_marginBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Editar Nombre de Usuario"
+                    android:textColor="@color/white"
+                    android:paddingStart="16dp"
+                    android:textSize="16sp"/>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="@color/accent_blue"
+                    android:contentDescription="Editar Nombre de Usuario"
+                    android:layout_gravity="center_vertical"
+                    android:paddingEnd="16dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/setting_edit_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="12dp"
+                android:background="@color/medium_blue"
+                android:layout_marginBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Editar Número"
+                    android:textColor="@color/white"
+                    android:paddingStart="16dp"
+                    android:textSize="16sp"/>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="@color/accent_blue"
+                    android:contentDescription="Editar Número"
+                    android:layout_gravity="center_vertical"
+                    android:paddingEnd="16dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/setting_change_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="12dp"
+                android:background="@color/medium_blue"
+                android:layout_marginBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cambiar Contraseña"
+                    android:textColor="@color/white"
+                    android:paddingStart="16dp"
+                    android:textSize="16sp"/>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="@color/accent_blue"
+                    android:contentDescription="Cambiar Contraseña"
+                    android:layout_gravity="center_vertical"
+                    android:paddingEnd="16dp"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/transparent"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Notificaciones"
                 android:textColor="@color/white"
                 android:textSize="18sp"
