@@ -1,0 +1,16 @@
+{
+  "users": [
+    {
+      "correo": "reyna.martinez20043@gmail.com",
+      "contrasena": "123456",
+      "nombre": "Administrador",
+      "telefono": "4492587227"
+    },
+    {
+      "correo": "riiccaarr@gmail.com",
+      "contrasena": "abc123",
+      "nombre": "Usuario",
+      "telefono": "4951110152"
+    }
+  ]
+}
