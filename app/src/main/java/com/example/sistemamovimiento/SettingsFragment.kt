@@ -5,10 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast // Importa Toast
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.sistemamovimiento.MainActivity
+import com.example.sistemamovimiento.data.UserSession
 import com.example.sistemamovimiento.databinding.FragmentSettingsBinding
 
 class SettingsFragment : Fragment() {
@@ -38,17 +39,14 @@ class SettingsFragment : Fragment() {
 
         // --- MANEJO DE OPCIONES DE CUENTA ---
         binding.settingEditUsername.setOnClickListener {
-            // TODO: Implementar la navegación a la pantalla de edición de nombre de usuario o mostrar un Dialog
             Toast.makeText(context, "Abrir edición de nombre de usuario", Toast.LENGTH_SHORT).show()
         }
 
         binding.settingEditNumber.setOnClickListener {
-            // TODO: Implementar la navegación a la pantalla de edición de número o mostrar un Dialog
             Toast.makeText(context, "Abrir edición de número", Toast.LENGTH_SHORT).show()
         }
 
         binding.settingChangePassword.setOnClickListener {
-            // TODO: Implementar la navegación a la pantalla de cambio de contraseña o mostrar un Dialog
             Toast.makeText(context, "Abrir cambio de contraseña", Toast.LENGTH_SHORT).show()
         }
         // --- FIN MANEJO DE OPCIONES DE CUENTA ---
@@ -58,22 +56,18 @@ class SettingsFragment : Fragment() {
         val email = binding.settingAlertEmail
         val sms = binding.settingAlertSms
 
-        // Títulos
         realtime.settingTitle.text = "Alertas en tiempo real"
         email.settingTitle.text = "Alertas por correo"
         sms.settingTitle.text = "Alertas por SMS"
 
-        // Switches
         val swRealtime = realtime.settingSwitch
         val swEmail = email.settingSwitch
         val swSms = sms.settingSwitch
 
-        // Valores guardados
         swRealtime.isChecked = prefs.getBoolean("alert_realtime", true)
         swEmail.isChecked = prefs.getBoolean("alert_email", true)
         swSms.isChecked = prefs.getBoolean("alert_sms", true)
 
-        // Guardar cambios
         swRealtime.setOnCheckedChangeListener { _, v ->
             prefs.edit().putBoolean("alert_realtime", v).apply()
         }
@@ -94,8 +88,13 @@ class SettingsFragment : Fragment() {
             binding.textSensitivityValue.text = next
         }
 
-        // Logout
+        // 🔥 LOGOUT REAL
         binding.buttonLogout.setOnClickListener {
+
+            // 1️⃣ Borrar sesión real
+            UserSession.logout(requireContext())
+
+            // 2️⃣ Redirigir al Login
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)

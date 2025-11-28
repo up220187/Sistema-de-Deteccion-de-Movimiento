@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.example.sistemamovimiento.data.UserSession
 import com.example.sistemamovimiento.databinding.FragmentLoginBinding
 import com.example.sistemamovimiento.viewmodels.LoginViewModel
 import com.example.sistemamovimiento.viewmodels.LoginViewModelFactory
@@ -32,8 +33,8 @@ class FragmentLogin : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1️⃣ Si ya hay sesión, ir directo al Home
-        if (viewModel.isLogged()) {
+        // 1️⃣ Si ya hay sesión activa → ir al Home
+        if (UserSession.isLogged(requireContext())) {
             findNavController().navigate(
                 FragmentLoginDirections.actionLoginFragmentToHomeFragment()
             )
@@ -53,10 +54,15 @@ class FragmentLogin : Fragment() {
             val success = viewModel.login(email, pass)
 
             if (success) {
+
+                // Guardar sesión REAL
+                UserSession.login(requireContext())
+
                 Toast.makeText(requireContext(), "Bienvenido", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(
                     FragmentLoginDirections.actionLoginFragmentToHomeFragment()
                 )
+
             } else {
                 Toast.makeText(requireContext(), "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
             }

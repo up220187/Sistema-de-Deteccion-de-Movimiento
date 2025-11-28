@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.sistemamovimiento.data.UserSession
 import androidx.navigation.fragment.findNavController
 import com.example.sistemamovimiento.FakeData
 import com.example.sistemamovimiento.R
@@ -36,6 +37,12 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (!UserSession.isLogged(requireContext())) {
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeFragmentToLoginFragment()
+            )
+            return
+        }
 
         setupStats()
         setupButton()
@@ -95,11 +102,14 @@ class HomeFragment : Fragment() {
                     true
                 }
                 R.id.menu_logout -> {
+                    UserSession.logout(requireContext())
+
                     findNavController().navigate(
                         HomeFragmentDirections.actionHomeFragmentToLoginFragment()
                     )
                     true
                 }
+
 
                 else -> false
             }
