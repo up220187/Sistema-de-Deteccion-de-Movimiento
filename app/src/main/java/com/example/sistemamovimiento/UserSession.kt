@@ -2,10 +2,14 @@ package com.example.sistemamovimiento.data
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
+import com.example.sistemamovimiento.models.User
 
 object UserSession {
     private const val PREFS = "USER_SESSION"
     private const val KEY_LOGGED = "is_logged"
+
+    var currentUser: User? = null
+
 
     fun login(context: Context) {
         context.getSharedPreferences(PREFS, AppCompatActivity.MODE_PRIVATE)

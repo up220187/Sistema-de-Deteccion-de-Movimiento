@@ -6,4 +6,5 @@
     <color name="white">#FFFFFF</color>
     <color name="accent_blue">#4A90E2</color>
     <color name="warning_red">#D62828</color>
+    <color name="grey_text">#B0B0B0</color>
 </resources>
