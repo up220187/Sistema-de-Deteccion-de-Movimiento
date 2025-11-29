@@ -1,6 +1,5 @@
 package com.example.sistemamovimiento.ui.settings
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -8,24 +7,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.sistemamovimiento.MainActivity
+import com.example.sistemamovimiento.data.UserRepository
 import com.example.sistemamovimiento.data.UserSession
 import com.example.sistemamovimiento.databinding.FragmentSettingsBinding
-
+import com.example.sistemamovimiento.utils.SessionManager
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
+    // Necesitamos estos dos para manejar la sesión y el guardado JSON
+    private lateinit var sessionManager: SessionManager
+    private lateinit var userRepository: UserRepository
+
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
@@ -34,97 +37,93 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Inicializamos
+        sessionManager = SessionManager(requireContext())
+        userRepository = UserRepository(requireContext())
+
         val activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(binding.toolbarSettings)
         binding.toolbarSettings.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
-        // 1. Cargar datos del usuario y mostrarlos
-        loadUserData()
-
-        // 2. Configurar botones de edición
+        updateUI()
         setupEditButtons()
-
-        // 3. Configurar Switches de Notificaciones (Código existente)
         setupNotifications()
-
-        // 4. Sensibilidad (Código existente)
         setupSensitivity()
 
-        // 5. Logout (Código existente)
+        // Logout
         binding.buttonLogout.setOnClickListener {
-            UserSession.logout(requireContext())
+            UserSession.logout(requireContext()) // Tu objeto singleton
+            sessionManager.clearSession()        // Tu manager de preferencias
+
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
     }
 
-    private fun loadUserData() {
-        val prefs = requireContext().getSharedPreferences("USER_DATA", Context.MODE_PRIVATE)
+    private fun updateUI() {
+        val currentUser = sessionManager.getSession()
 
-        // Intentamos obtener datos guardados localmente, si no existen, usamos los de la sesión
-        val sessionName = UserSession.currentUser?.nombre ?: "Usuario"
-        val sessionPhone = UserSession.currentUser?.telefono ?: "---"
-        val sessionPass = UserSession.currentUser?.contrasena ?: "******"
-        val sessionEmail = UserSession.currentUser?.correo ?: "correo@ejemplo.com"
-
-        // Si se editó previamente, estará en SharedPreferences
-        val savedName = prefs.getString("saved_name", sessionName)
-        val savedPhone = prefs.getString("saved_phone", sessionPhone)
-        val savedPass = prefs.getString("saved_pass", sessionPass)
-
-        // Asignar a la vista
-        binding.profileName.text = savedName
-        binding.tvCurrentName.text = savedName
-        binding.tvCurrentPhone.text = savedPhone
-        binding.tvCurrentPassword.text = "*".repeat(savedPass?.length ?: 6) // Ocultar pass visualmente
-        binding.tvCurrentEmail.text = sessionEmail // El correo usualmente no se edita fácil, lo dejamos fijo
+        if (currentUser != null) {
+            binding.profileName.text = currentUser.nombre
+            binding.tvCurrentName.text = currentUser.nombre
+            binding.tvCurrentPhone.text = currentUser.telefono
+            binding.tvCurrentEmail.text = currentUser.correo // El correo es el ID, mejor no editarlo
+            binding.tvCurrentPassword.text = "*".repeat(currentUser.contrasena.length)
+        }
     }
 
     private fun setupEditButtons() {
-        val prefs = requireContext().getSharedPreferences("USER_DATA", Context.MODE_PRIVATE)
-
         // Editar Nombre
         binding.btnEditName.setOnClickListener {
-            val currentVal = binding.tvCurrentName.text.toString()
-            showEditDialog("Editar Nombre", currentVal) { newValue ->
-                prefs.edit().putString("saved_name", newValue).apply()
-                // Actualizar UI y Sesión temporal
-                binding.profileName.text = newValue
-                binding.tvCurrentName.text = newValue
-                UserSession.currentUser?.nombre = newValue
+            val user = sessionManager.getSession() ?: return@setOnClickListener
+            showEditDialog("Editar Nombre", user.nombre) { newValue ->
+
+                // 1. Modificar objeto
+                user.nombre = newValue
+
+                // 2. Guardar en JSON (Permanente)
+                userRepository.updateUser(user)
+
+                // 3. Guardar en Sesión (Actual)
+                sessionManager.saveSession(user)
+
+                // 4. Actualizar Vista
+                updateUI()
                 Toast.makeText(context, "Nombre actualizado", Toast.LENGTH_SHORT).show()
             }
         }
 
         // Editar Teléfono
         binding.btnEditPhone.setOnClickListener {
-            val currentVal = binding.tvCurrentPhone.text.toString()
-            showEditDialog("Editar Teléfono", currentVal, isPhone = true) { newValue ->
-                prefs.edit().putString("saved_phone", newValue).apply()
-                binding.tvCurrentPhone.text = newValue
-                UserSession.currentUser?.telefono = newValue
+            val user = sessionManager.getSession() ?: return@setOnClickListener
+            showEditDialog("Editar Teléfono", user.telefono, isPhone = true) { newValue ->
+                user.telefono = newValue
+                userRepository.updateUser(user)
+                sessionManager.saveSession(user)
+                updateUI()
                 Toast.makeText(context, "Teléfono actualizado", Toast.LENGTH_SHORT).show()
             }
         }
 
         // Editar Contraseña
         binding.btnEditPassword.setOnClickListener {
-            // No mostramos la contraseña actual en el cuadro de texto por seguridad, solo vacío
+            val user = sessionManager.getSession() ?: return@setOnClickListener
             showEditDialog("Cambiar Contraseña", "", isPassword = true) { newValue ->
                 if (newValue.isNotEmpty()) {
-                    prefs.edit().putString("saved_pass", newValue).apply()
-                    binding.tvCurrentPassword.text = "*".repeat(newValue.length)
-                    UserSession.currentUser?.contrasena = newValue
+                    user.contrasena = newValue
+                    userRepository.updateUser(user)
+                    sessionManager.saveSession(user)
+                    updateUI()
                     Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
-    // Función auxiliar para mostrar un cuadro de diálogo con un campo de texto
+    // --- Tus funciones auxiliares (sin cambios mayores) ---
     private fun showEditDialog(
         title: String,
         currentValue: String,
@@ -136,9 +135,8 @@ class SettingsFragment : Fragment() {
         builder.setTitle(title)
 
         val input = EditText(requireContext())
-        input.setText(currentValue)
+        input.setText(if (isPassword) "" else currentValue)
 
-        // Configurar tipo de entrada
         if (isPhone) {
             input.inputType = InputType.TYPE_CLASS_PHONE
         } else if (isPassword) {
@@ -148,29 +146,23 @@ class SettingsFragment : Fragment() {
             input.inputType = InputType.TYPE_CLASS_TEXT
         }
 
-        // Añadir un poco de margen al EditText
-        val container = android.widget.FrameLayout(requireContext())
-        val params = android.widget.FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
+        val container = FrameLayout(requireContext())
+        val params = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        params.leftMargin = 50
-        params.rightMargin = 50
+        params.setMargins(50, 0, 50, 0)
         input.layoutParams = params
         container.addView(input)
         builder.setView(container)
 
-        builder.setPositiveButton("Guardar") { _, _ ->
-            onSave(input.text.toString())
-        }
+        builder.setPositiveButton("Guardar") { _, _ -> onSave(input.text.toString()) }
         builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.cancel() }
-
         builder.show()
     }
 
     private fun setupNotifications() {
+        // (Tu código original de notificaciones aquí)
         val prefs = requireContext().getSharedPreferences("SETTINGS", AppCompatActivity.MODE_PRIVATE)
-
         val realtime = binding.settingAlertRealtime
         val email = binding.settingAlertEmail
         val sms = binding.settingAlertSms
@@ -189,6 +181,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupSensitivity() {
+        // (Tu código original de sensibilidad aquí)
         binding.textSensitivityValue.setOnClickListener {
             val next = when (binding.textSensitivityValue.text.toString()) {
                 "Baja" -> "Media"
