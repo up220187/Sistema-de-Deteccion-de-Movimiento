@@ -8,42 +8,80 @@
     android:padding="16dp"
     tools:context=".MainActivity">
 
-    <!-- Título de la Aplicación -->
+    <!-- Título -->
     <TextView
         android:id="@+id/tv_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Consumidor de Eventos (Simulado)"
+        android:text="Consumidor de Sensores Azure 📊"
         android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:paddingBottom="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Indicador de Carga (Spinner) -->
+    <!-- Botón para forzar una nueva lectura y guardado -->
+    <Button
+        android:id="@+id/btn_fetch_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RECIBIR Y GUARDAR NUEVA LECTURA"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Área de Estado (Muestra el estado de la última operación) -->
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:layout_marginTop="16dp"
+        android:text="Estado: Iniciando..."
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:background="#EFEFEF"
+        app:layout_constraintTop_toBottomOf="@id/btn_fetch_data"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Título para la Lista Histórica -->
+    <TextView
+        android:id="@+id/tv_history_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Historial de Lecturas (Tiempo Real Firestore):"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- RecyclerView para la Lista de Datos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_sensor_history"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        tools:listitem="@layout/item_sensor_reading"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/tv_history_title"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Indicador de Carga (Spinner, visible solo al cargar) -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminate="true"
-        android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@id/tv_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp" />
-
-    <!-- Área para mostrar los mensajes de los Eventos -->
-    <TextView
-        android:id="@+id/tv_event_data"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scrollbars="vertical"
-        android:layout_marginTop="16dp"
-        android:text="Esperando datos del Event Hub (vía API de Backend)..."
-        app:layout_constraintTop_toBottomOf="@id/progress_bar"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/rv_sensor_history"
+        app:layout_constraintBottom_toBottomOf="@id/rv_sensor_history"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
