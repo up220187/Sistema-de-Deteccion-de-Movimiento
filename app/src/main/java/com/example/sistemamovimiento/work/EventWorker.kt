@@ -16,7 +16,7 @@ class EventWorker(
         val db = AppDatabase.getDatabase(applicationContext)
         val repo = EventRepository(
             api = RetrofitClient.instance,
-            eventDao = db.eventDao()
+            dao = db.eventDao() // Corregido: el nombre del parámetro es 'dao'
         )
 
         return try {
