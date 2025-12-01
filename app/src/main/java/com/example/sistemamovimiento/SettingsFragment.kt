@@ -11,12 +11,14 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.color
 import androidx.fragment.app.Fragment
 import com.example.sistemamovimiento.MainActivity
 import com.example.sistemamovimiento.data.UserRepository
 import com.example.sistemamovimiento.data.UserSession
 import com.example.sistemamovimiento.databinding.FragmentSettingsBinding
 import com.example.sistemamovimiento.utils.SessionManager
+import com.example.sistemamovimiento.R
 
 class SettingsFragment : Fragment() {
 
@@ -26,6 +28,8 @@ class SettingsFragment : Fragment() {
     // Necesitamos estos dos para manejar la sesión y el guardado JSON
     private lateinit var sessionManager: SessionManager
     private lateinit var userRepository: UserRepository
+
+    private var isPasswordVisible = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -61,6 +65,11 @@ class SettingsFragment : Fragment() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
+
+        binding.btnToggleVisibility.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible // Cambiar estado (true/false)
+            updateUI() // Refrescar texto
+        }
     }
 
     private fun updateUI() {
@@ -71,7 +80,18 @@ class SettingsFragment : Fragment() {
             binding.tvCurrentName.text = currentUser.nombre
             binding.tvCurrentPhone.text = currentUser.telefono
             binding.tvCurrentEmail.text = currentUser.correo // El correo es el ID, mejor no editarlo
-            binding.tvCurrentPassword.text = "*".repeat(currentUser.contrasena.length)
+
+            if (isPasswordVisible) {
+                // Mostrar contraseña real
+                binding.tvCurrentPassword.text = currentUser.contrasena
+                // Cambiar color del icono para indicar que está activo
+                binding.btnToggleVisibility.setColorFilter(resources.getColor(R.color.accent_blue, null))
+            } else {
+                // Mostrar asteriscos
+                binding.tvCurrentPassword.text = "*".repeat(currentUser.contrasena.length)
+                // Color gris normal
+                binding.btnToggleVisibility.setColorFilter(resources.getColor(R.color.grey_text, null))
+            }
         }
     }
 

@@ -89,6 +89,20 @@
             android:name="imageRes"
             app:argType="reference"
             android:defaultValue="@drawable/securewatch_logo" />
+
+        <argument
+            android:name="irValue"
+            app:argType="integer"
+            android:defaultValue="0"/>
+
+        <argument
+            android:name="pirValue"
+            app:argType="integer"
+            android:defaultValue="0"/>
+        <argument
+            android:name="soundValue"
+            app:argType="integer"
+            android:defaultValue="0"/>
     </fragment>
 
 </navigation>

@@ -14,6 +14,13 @@ class EventRepository(
         val response = api.getLastEvent()
         val body = response.data.body
 
+        val existingEvent = dao.getLastEvent()
+
+        if (existingEvent != null && existingEvent.sequenceNumber == response.data.sequenceNumber) {
+            return existingEvent
+        }
+
+
         val activeCount = listOf(body.ir, body.pir, body.sound).count { it == 1 }
 
         val severity = when (activeCount) {

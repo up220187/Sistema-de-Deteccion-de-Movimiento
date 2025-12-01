@@ -33,6 +33,7 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
+    // Bindings para las tarjetitas de arriba
     private lateinit var statTodayBinding: CardStatItemBinding
     private lateinit var statWeekBinding: CardStatItemBinding
     private lateinit var statActiveBinding: CardStatItemBinding
@@ -46,22 +47,17 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        // Bindings de los include
+        // Vincular layouts incluidos
         statTodayBinding = CardStatItemBinding.bind(binding.statToday.root)
         statWeekBinding = CardStatItemBinding.bind(binding.statWeek.root)
         statActiveBinding = CardStatItemBinding.bind(binding.statActive.root)
 
-        // Crear repositorio (Room + Retrofit)
+        // Inicializar repositorio
         val db = AppDatabase.getDatabase(requireContext())
-        repository = EventRepository(
-            api = RetrofitClient.instance,
-            dao = db.eventDao()
-        )
+        repository = EventRepository(RetrofitClient.instance, db.eventDao())
 
-        // Chart
         barChart = binding.barChartDetections
-
-        setupChartAppearance()
+        setupChartAppearance() // Configuración bonita de la gráfica
 
         return binding.root
     }
@@ -69,216 +65,210 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Verificar sesión
         if (!UserSession.isLogged(requireContext())) {
-            findNavController().navigate(
-                HomeFragmentDirections.actionHomeFragmentToLoginFragment()
-            )
+            findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLoginFragment())
             return
         }
 
-        setupToolbarMenu()
-        setupStats()
 
-        // Iniciar actualización automática (trae evento y guarda en Room)
-        observeLastEvent()
+        setupToolbarMenu() // ¡Importante! Ya no olvides esto para que funcionen los menús
+        //setupStats()
+
+        // 1. Cargar datos locales al entrar (para que no se vea vacío)
+        loadLocalData()
+
+        // 2. Configurar el botón de refrescar
+        binding.btnRefresh.setOnClickListener {
+            refreshData()
+        }
     }
 
-    // ==============================
-    //  🔄 ACTUALIZAR ÚLTIMO EVENTO CADA 15s
-    // ==============================
-    private fun observeLastEvent() {
+    private fun refreshData() {
+        // Opcional: Mostrar un Toast o animar el botón para indicar carga
+        // binding.btnRefresh.animate().rotationBy(360f).setDuration(1000).start()
+
         lifecycleScope.launch {
-            while (true) {
-                try {
-                    // fetchAndSaveLastEvent devuelve la entidad creada y guardada
-                    val event: EventEntity = repository.fetchAndSaveLastEvent()
-
-                    // Actualizar UI con los datos del evento
-                    updateLastEventUI(
-                        event.timestamp,
-                        event.severity
-                    )
-
-                    // Actualizar gráfico con los eventos guardados
-                    updateChartWithEvents()
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-                delay(15_000) // cada 15 segundos
+            try {
+                val event = repository.fetchAndSaveLastEvent()
+                updateLastEventUI(event)     // Actualiza tarjeta
+                updateChartWithEvents()      // Actualiza gráfica
+                // Opcional: Mensaje de éxito
+                // Toast.makeText(context, "Datos actualizados", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Toast.makeText(context, "Error de conexión", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // ==============================
-    //  🎨 ACTUALIZAR UI DEL EVENTO
-    // ==============================
-    private fun updateLastEventUI(timestamp: Long, severity: String) {
+    // Función para cargar DATOS QUE YA TIENES guardados (al abrir la app)
+    private fun loadLocalData() {
+        lifecycleScope.launch {
+            val lastEvent = repository.getLastLocalEvent() // Asegúrate de tener esta función en tu Repo
+            if (lastEvent != null) {
+                updateLastEventUI(lastEvent)
+            }
+            updateChartWithEvents()
+        }
+    }
 
-        binding.textLastEventTime.text = formatDate(timestamp)
-        binding.textLastEventSeverity.text = "Severidad: $severity"
+    // --- LÓGICA PRINCIPAL DE UI ---
+    private fun updateLastEventUI(event: EventEntity) {
 
-        // Navegación: convertir timestamp a String (porque tu action espera String)
+        // 1. Formato de Fecha y Hora
+        val timestampMillis = if (event.timestamp < 1000000000000L) event.timestamp * 1000 else event.timestamp
+        val dateObj = Date(timestampMillis)
+
+        val dateFmt = SimpleDateFormat("dd MMM yyyy", Locale("es", "ES"))
+        val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+
+        binding.textDateDisplay.text = dateFmt.format(dateObj)
+        binding.textTimeDisplay.text = timeFmt.format(dateObj)
+
+        // 2. Determinar Sensores Activos
+        val activeList = mutableListOf<String>()
+        if (event.ir == 1) activeList.add("Infrarrojo")
+        if (event.pir == 1) activeList.add("Movimiento")
+        if (event.sound == 1) activeList.add("Sonido")
+
+        val count = activeList.size
+        val sensorsText = if (activeList.isNotEmpty()) activeList.joinToString(", ") else "Ninguno"
+        binding.textSensorsActive.text = sensorsText
+
+        // 3. Lógica de Prioridad (Semáforo)
+        val (priorityText, colorHex) = when (count) {
+            3 -> "ALTA" to "#FF5252"   // Rojo
+            2 -> "MEDIA" to "#FFD740"  // Amarillo
+            1 -> "BAJA" to "#69F0AE"   // Verde
+            else -> "INFO" to "#90A4AE" // Gris
+        }
+
+        binding.textPriorityBadge.text = priorityText
+        binding.textPriorityBadge.background.setTint(Color.parseColor(colorHex))
+        // Si es amarillo, texto negro para leer mejor; sino blanco
+        binding.textPriorityBadge.setTextColor(if (count == 2) Color.BLACK else Color.WHITE)
+
+        binding.lblDetected.text = "Sensor activado"
+
+        // 4. Configurar Botón con Navigation Safe Args
         binding.buttonViewDetails.setOnClickListener {
             val action = HomeFragmentDirections.actionHomeFragmentToDetailFragment(
-                title = "Última alarma",
-                location = severity,              // ejemplo: pasar la severidad al detalle
-                timestamp = timestamp.toString()  // <-- convertir a String
+                title = "Prioridad $priorityText",
+                location = "Sensores: $sensorsText",
+                timestamp = timestampMillis.toString(), // Pasamos como string para parsear allá
+                imageRes = R.drawable.securewatch_logo,
+
+                // Pasamos los valores individuales
+                irValue = event.ir,
+                pirValue = event.pir,
+                soundValue = event.sound
             )
             findNavController().navigate(action)
         }
     }
 
-    // ==============================
-    //  📅 FORMATO DE FECHA
-    // ==============================
-    private fun formatDate(time: Long): String {
-        // Si tu timestamp está en segundos, multiplícalo por 1000
-        val millis = if (time < 1_000_000_000_000L) time * 1000 else time
-        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-        return sdf.format(Date(millis))
-    }
-
-    // ==============================
-    //  📊 CHART: CONFIG Y ACTUALIZACIÓN
-    // ==============================
+    // --- GRÁFICA BONITA ---
     private fun setupChartAppearance() {
-        // Config básico del chart
         barChart.setDrawGridBackground(false)
+        barChart.setDrawBorders(false)
         barChart.description.isEnabled = false
-        barChart.setFitBars(true)
+        barChart.legend.isEnabled = false
+
+        val xAxis = barChart.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.setDrawGridLines(false)
+        xAxis.textColor = Color.WHITE
+        xAxis.granularity = 1f
+
+        val leftAxis = barChart.axisLeft
+        leftAxis.setDrawGridLines(true)
+        leftAxis.gridColor = Color.parseColor("#33FFFFFF") // Líneas sutiles
+        leftAxis.textColor = Color.WHITE
+        leftAxis.axisMinimum = 0f
+
         barChart.axisRight.isEnabled = false
-
-        val x = barChart.xAxis
-        x.position = XAxis.XAxisPosition.BOTTOM
-        x.granularity = 1f
-        x.setDrawGridLines(false)
-
-        val left = barChart.axisLeft
-        left.axisMinimum = 0f
     }
 
     private fun updateChartWithEvents() {
         lifecycleScope.launch {
-            try {
-                val event: EventEntity = repository.fetchAndSaveLastEvent()
-                val last7Counts = aggregateLast7DaysCounts(repository.getLocalEvents())
+            val events = repository.getLocalEvents()
+            val counts = aggregateLast7DaysCounts(events)
 
-                // crear entradas
-                val entries = ArrayList<BarEntry>()
-                val labels = ArrayList<String>()
+            val entries = ArrayList<BarEntry>()
+            val labels = ArrayList<String>()
 
-                // labels: últimos 7 días (de -6 a 0), 0 = hoy
-                val cal = Calendar.getInstance()
-                for (i in 6 downTo 0) {
-                    val d = Calendar.getInstance()
-                    d.add(Calendar.DAY_OF_YEAR, -i)
-                    val label = SimpleDateFormat("dd/MM", Locale.getDefault()).format(d.time)
-                    labels.add(label)
-                }
+            // Construir datos de los últimos 7 días (De hace 6 días hasta hoy)
+            val cal = Calendar.getInstance()
+            for (i in 6 downTo 0) {
+                val d = Calendar.getInstance()
+                d.add(Calendar.DAY_OF_YEAR, -i)
+                labels.add(SimpleDateFormat("EE", Locale("es", "ES")).format(d.time)) // "Lun", "Mar"
 
-                // last7Counts es mapa: index 0..6 -> count (0 = hoy, 6 = hace 6 días)
-                // Usamos entries en x: 0..6
-                for (i in 0..6) {
-                    val count = last7Counts[i] ?: 0
-                    entries.add(BarEntry(i.toFloat(), count.toFloat()))
-                }
-
-                val set = BarDataSet(entries, "Detecciones (7 días)")
-                set.valueTextSize = 10f
-                set.color = Color.parseColor("#CF3476") // si prefieres usar tu color
-                val data = BarData(set)
-                data.barWidth = 0.9f
-
-                barChart.data = data
-                barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-                barChart.xAxis.labelRotationAngle = -45f
-                barChart.invalidate()
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+                // En nuestro mapa 'counts', 0 es hoy. Así que 'i' es la diferencia de días.
+                val valCount = counts[i] ?: 0
+                entries.add(BarEntry((6-i).toFloat(), valCount.toFloat()))
             }
+
+            val set = BarDataSet(entries, "Detecciones")
+            set.color = Color.parseColor("#4FC3F7") // Azul claro
+            set.valueTextColor = Color.WHITE
+            set.valueTextSize = 12f
+
+            val data = BarData(set)
+            data.barWidth = 0.5f
+
+            barChart.data = data
+            barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+            barChart.invalidate()
+            barChart.animateY(1000)
         }
     }
 
-    /**
-     * Recibe todos los eventos y los agrupa por día en los últimos 7 días.
-     * Retorna un map index->count donde index 0 = hoy, 1 = ayer, ... 6 = hace 6 días
-     */
+    // (Mantén tus funciones auxiliares aggregateLast7DaysCounts, daysBetween, setupStats y setupToolbarMenu iguales)
+    // Solo asegúrate de que aggregateLast7DaysCounts devuelva el mapa correctamente.
+
     private fun aggregateLast7DaysCounts(allEvents: List<EventEntity>): Map<Int, Int> {
         val counts = mutableMapOf<Int, Int>()
         for (i in 0..6) counts[i] = 0
-
         val now = Calendar.getInstance()
-
         for (evt in allEvents) {
             val millis = if (evt.timestamp < 1_000_000_000_000L) evt.timestamp * 1000 else evt.timestamp
             val cal = Calendar.getInstance().apply { time = Date(millis) }
-
-            val diffDays = daysBetween(cal, now)
-            if (diffDays in 0..6) {
-                // diffDays 0 = same day (hoy), 1 = ayer, ...
-                val current = counts[diffDays] ?: 0
-                counts[diffDays] = current + 1
+            val diff = daysBetween(cal, now)
+            if (diff in 0..6) {
+                counts[diff] = (counts[diff] ?: 0) + 1
             }
         }
-
-        // Queremos que el chart muestre días en orden (hace 6 ... hoy), pero en updateChartWithEvents invertimos etiquetas.
-        // Aquí retornamos el map (0 = hoy)
         return counts
     }
 
     private fun daysBetween(day: Calendar, now: Calendar): Int {
-        val start = Calendar.getInstance().apply {
-            time = Date(day.timeInMillis)
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val end = Calendar.getInstance().apply {
-            time = Date(now.timeInMillis)
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val diff = (end.timeInMillis - start.timeInMillis) / (24 * 60 * 60 * 1000)
-        return diff.toInt()
+        val start = Calendar.getInstance().apply { timeInMillis = day.timeInMillis; set(Calendar.HOUR_OF_DAY,0); set(Calendar.MINUTE,0); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0)}
+        val end = Calendar.getInstance().apply { timeInMillis = now.timeInMillis; set(Calendar.HOUR_OF_DAY,0); set(Calendar.MINUTE,0); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0)}
+        return ((end.timeInMillis - start.timeInMillis) / (1000*60*60*24)).toInt()
     }
 
-    // ==============================
-    //  📊 ESTADÍSTICAS SIMPLES (se pueden ligar con Room después)
-    // ==============================
-    private fun setupStats() {
-        // puedes cambiar por queries reales a Room si lo deseas
-        statTodayBinding.textStatValue.text = "—"
-        statTodayBinding.textStatLabel.text = "Hoy"
-
-        statWeekBinding.textStatValue.text = "—"
-        statWeekBinding.textStatLabel.text = "Semana"
-
-        statActiveBinding.textStatValue.text = "—"
-        statActiveBinding.textStatLabel.text = "Activos"
-    }
-
-    // ==============================
-    //  ☰ MENÚ SUPERIOR (Toolbar)
-    // ==============================
     private fun setupToolbarMenu() {
         binding.toolbarMain.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-
+                R.id.action_notifications -> {
+                    findNavController().navigate(
+                        HomeFragmentDirections.actionHomeFragmentToHistoryFragment()
+                    )
+                    true
+                }
                 R.id.menu_history -> {
                     findNavController().navigate(
                         HomeFragmentDirections.actionHomeFragmentToHistoryFragment()
                     )
                     true
                 }
-
                 R.id.menu_settings -> {
                     findNavController().navigate(
                         HomeFragmentDirections.actionHomeFragmentToSettingsFragment()
                     )
                     true
                 }
-
                 R.id.menu_logout -> {
                     UserSession.logout(requireContext())
                     findNavController().navigate(
@@ -286,7 +276,6 @@ class HomeFragment : Fragment() {
                     )
                     true
                 }
-
                 else -> false
             }
         }

@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.sistemamovimiento.databinding.FragmentDetailBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
 class DetailFragment : Fragment() {
 
@@ -16,11 +18,7 @@ class DetailFragment : Fragment() {
 
     private val args: DetailFragmentArgs by navArgs()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -28,29 +26,32 @@ class DetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Cerrar con icono
-        binding.toolbarDetail.setNavigationOnClickListener {
-            findNavController().navigateUp()
+        binding.toolbarDetail.setNavigationOnClickListener { findNavController().navigateUp() }
+
+        // Datos Básicos
+        binding.textDet.text = args.title
+        binding.imageFullEvent.setImageResource(args.imageRes)
+        binding.progressBarImage.visibility = View.GONE // En app real aquí cargarías URL
+
+        // Parsear Fecha
+        val tsLong = args.timestamp.toLongOrNull() ?: 0L
+        val date = Date(tsLong)
+        binding.FechaDet.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
+        binding.HoraDet.text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(date)
+
+        // Construir lista detallada de sensores
+        val sensors = mutableListOf<String>()
+        if (args.irValue == 1) sensors.add("• Sensor Infrarrojo (IR)")
+        if (args.pirValue == 1) sensors.add("• Sensor de Movimiento (PIR)")
+        if (args.soundValue == 1) sensors.add("• Sensor de Sonido")
+
+        val detalleTexto = if (sensors.isNotEmpty()) {
+            sensors.joinToString("\n")
+        } else {
+            "Sin información específica de sensores."
         }
 
-        // Recibir datos del Safe Args
-        val title = args.title
-        val location = args.location
-        val timestamp = args.timestamp
-        val imageRes = args.imageRes
-
-        // Simular loading
-        binding.progressBarImage.visibility = View.VISIBLE
-
-        binding.imageFullEvent.postDelayed({
-            binding.imageFullEvent.setImageResource(imageRes)
-            binding.progressBarImage.visibility = View.GONE
-        }, 800)
-
-        // Llenar textos (si los necesitas dinámicos)
-        binding.textDet.text = title
-        binding.PrecenciaDet.text = location
-        binding.FechaDet.text = timestamp
+        binding.PrecenciaDet.text = detalleTexto
     }
 
     override fun onDestroyView() {
