@@ -42,6 +42,37 @@ class HomeFragment : Fragment() {
 
     private var autoRefreshJobRunning = true
 
+    // Agrega esta función en tu clase HomeFragment
+    private fun setupDynamicStats() {
+        lifecycleScope.launch {
+            // 1. Obtener los conteos de la base de datos
+            val stats = repository.getDashboardStats()
+
+            // 2. Preparar formateadores de fecha "bonitos"
+            val locale = Locale("es", "ES")
+            val todayFormat = SimpleDateFormat("dd 'de' MMMM", locale) // Ej: 12 de Febrero
+            val monthFormat = SimpleDateFormat("MMMM", locale)         // Ej: Febrero
+            val yearFormat = SimpleDateFormat("yyyy", locale)          // Ej: 2025
+
+            val now = Date()
+
+            // --- TARJETA 1: DÍA ---
+            statTodayBinding.textStatValue.text = stats.dayCount.toString()
+            // Capitalizamos la primera letra (ej: "febrero" -> "Febrero")
+            statTodayBinding.textStatLabel.text = "Hoy, ${todayFormat.format(now).replaceFirstChar { it.uppercase() }}"
+
+            // --- TARJETA 2: MES (Reusamos statWeek) ---
+            statWeekBinding.textStatValue.text = stats.monthCount.toString()
+            val mesBonito = monthFormat.format(now).replaceFirstChar { it.uppercase() }
+            statWeekBinding.textStatLabel.text = "Mes de $mesBonito"
+
+            // --- TARJETA 3: AÑO (Reusamos statActive) ---
+            statActiveBinding.textStatValue.text = stats.yearCount.toString()
+            statActiveBinding.textStatLabel.text = "Año ${yearFormat.format(now)}"
+        }
+    }
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -71,6 +102,8 @@ class HomeFragment : Fragment() {
 
         setupToolbarMenu()
 
+        setupDynamicStats()
+
         // cargar datos locales al abrir
         loadLocalData()
 
@@ -81,6 +114,7 @@ class HomeFragment : Fragment() {
                     val event = repository.fetchAndSaveLastEvent()
                     updateLastEventUI(event)
                     updateChartWithEvents()
+                    setupDynamicStats()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {
@@ -104,6 +138,7 @@ class HomeFragment : Fragment() {
                     val event = repository.fetchAndSaveLastEvent()
                     updateLastEventUI(event)
                     updateChartWithEvents()
+                    setupDynamicStats()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

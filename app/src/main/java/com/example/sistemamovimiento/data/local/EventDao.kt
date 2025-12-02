@@ -16,5 +16,8 @@ interface EventDao {
 
     @Query("SELECT * FROM events ORDER BY timestamp DESC LIMIT 1")
     suspend fun getLastEvent(): EventEntity?
+
+    @Query("SELECT COUNT(*) FROM events WHERE timestamp >= :startTimestamp")
+    suspend fun getCountSince(startTimestamp: Long): Int
 }
 
