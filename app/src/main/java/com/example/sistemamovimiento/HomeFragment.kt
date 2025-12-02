@@ -211,7 +211,6 @@ class HomeFragment : Fragment() {
             barChart.data = data
             barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
             barChart.invalidate()
-            barChart.animateY(1000)
         }
     }
 
