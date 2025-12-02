@@ -53,6 +53,7 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation(libs.androidx.swiperefreshlayout)
     val nav_version = "2.7.5"
     implementation("androidx.navigation:navigation-fragment-ktx:${nav_version}")
     implementation("androidx.navigation:navigation-ui-ktx:${nav_version}")
@@ -85,6 +86,8 @@ dependencies {
 // Optional: OkHttp interceptor para debugging
     implementation ("com.squareup.okhttp3:okhttp:4.9.3")
 
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

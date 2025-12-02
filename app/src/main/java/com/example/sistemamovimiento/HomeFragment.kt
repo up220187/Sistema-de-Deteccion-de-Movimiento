@@ -74,6 +74,22 @@ class HomeFragment : Fragment() {
         // cargar datos locales al abrir
         loadLocalData()
 
+        // después de setupToolbarMenu() y loadLocalData()
+        binding.swipeRefresh.setOnRefreshListener {
+            lifecycleScope.launch {
+                try {
+                    val event = repository.fetchAndSaveLastEvent()
+                    updateLastEventUI(event)
+                    updateChartWithEvents()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    binding.swipeRefresh.isRefreshing = false
+                }
+            }
+        }
+
+
         // iniciar refresco automático
         startAutoRefresh()
     }
