@@ -8,31 +8,23 @@ import com.example.sistemamovimiento.network.RetrofitClient
 import com.example.sistemamovimiento.repository.EventRepository
 import com.example.sistemamovimiento.util.NotificationHelper
 
-class MotionWorker(
-    context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
-
+class MotionWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         return try {
             val db = AppDatabase.getDatabase(applicationContext)
-            val repo = EventRepository(
-                RetrofitClient.instance,
-                db.eventDao()
-            )
+            val repo = EventRepository(RetrofitClient.instance, db.eventDao())
 
-            val previous = repo.getLastLocalEvent()
+            val previous = db.eventDao().getLastEvent()
             val current = repo.fetchAndSaveLastEvent()
 
-            val isNew = previous?.sequenceNumber != current.sequenceNumber
+            val isNew = previous == null || previous.sequenceNumber != current.sequenceNumber
 
-            // 🔥 SOLO prioridad ALTA: notificación
-            if (isNew && current.severity == "Alta") {
+            if (isNew) {
+                // Solo notificar si ALTA (NotificationHelper lo revisa)
                 NotificationHelper.showNewEventNotification(applicationContext, current)
             }
 
             Result.success()
-
         } catch (e: Exception) {
             e.printStackTrace()
             Result.retry()

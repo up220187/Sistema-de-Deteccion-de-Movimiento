@@ -5,6 +5,11 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
 
+    <action
+        android:id="@+id/action_global_detailFragment"
+        app:destination="@id/detailFragment" />
+
+
     <!-- LOGIN -->
     <fragment
         android:id="@+id/loginFragment"
@@ -103,6 +108,16 @@
             android:name="soundValue"
             app:argType="integer"
             android:defaultValue="0"/>
+        <argument
+            android:name="isHuman"
+            app:argType="integer"
+            android:defaultValue="0" />
+
+        <argument
+            android:name="imageUrl"
+            app:argType="string"
+            android:defaultValue="" />
+
     </fragment>
 
 </navigation>

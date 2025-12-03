@@ -24,18 +24,17 @@
             app:navigationIcon="@drawable/ic_close" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ImageView
+    <!-- PhotoView -->
+    <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/image_full_event"
-        android:layout_width="272dp"
-        android:layout_height="285dp"
-        android:contentDescription="Imagen capturada del evento de movimiento"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.461"
+        android:adjustViewBounds="true"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayoutDetail"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayoutDetail"
-        app:layout_constraintVertical_bias="0.052" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/textDet" />
 
     <ProgressBar
         android:id="@+id/progress_bar_image"
@@ -45,82 +44,93 @@
         app:layout_constraintTop_toTopOf="@+id/image_full_event"
         app:layout_constraintBottom_toBottomOf="@+id/image_full_event"
         app:layout_constraintStart_toStartOf="@+id/image_full_event"
-        app:layout_constraintEnd_toEndOf="@+id/image_full_event"/>
+        app:layout_constraintEnd_toEndOf="@+id/image_full_event" />
 
-    <!-- Título principal (ya tenía Top, está bien) -->
     <TextView
         android:id="@+id/textDet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:fontFamily="sans-serif-black"
         android:text="Detalle de detección"
         android:textColor="#A09595"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:fontFamily="sans-serif-black"
+        app:layout_constraintTop_toBottomOf="@+id/image_full_event"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/image_full_event" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- FECHA: Lo ponemos debajo del título textDet -->
+    <!-- FECHA -->
     <TextView
         android:id="@+id/textFecha"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:fontFamily="sans-serif-medium"
         android:text="Fecha de detección:"
         android:textColor="#A09595"
-        app:layout_constraintTop_toBottomOf="@+id/textDet"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/FechaDet"
-        app:layout_constraintHorizontal_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@id/textDet"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/FechaDet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="DD/MM/AAAA"
         android:textColor="#A09595"
-        app:layout_constraintTop_toTopOf="@+id/textFecha"
-        app:layout_constraintStart_toEndOf="@+id/textFecha"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/textFecha"
+        app:layout_constraintTop_toTopOf="@id/textFecha" />
 
-    <!-- HORA: Lo ponemos debajo de la Fecha -->
+    <!-- HORA -->
     <TextView
         android:id="@+id/textHora"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:fontFamily="sans-serif-medium"
         android:text="Hora de detección:"
         android:textColor="#A09595"
-        app:layout_constraintTop_toBottomOf="@+id/textFecha"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/HoraDet"
-        app:layout_constraintHorizontal_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@id/textFecha"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/HoraDet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="HH/MM"
         android:textColor="#A09595"
-        app:layout_constraintTop_toTopOf="@+id/textHora"
-        app:layout_constraintStart_toEndOf="@+id/textHora"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/textHora"
+        app:layout_constraintTop_toTopOf="@id/textHora" />
 
-    <!-- PRESENCIA (Etiqueta) -->
+    <!-- ¿ES HUMANO? -->
+    <TextView
+        android:id="@+id/textEsHumano"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="¿Es humano?:"
+        android:textColor="#A09595"
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintTop_toBottomOf="@+id/textHora"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/EsHumanoDet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="#A09595"
+        android:text="Cargando..."
+        app:layout_constraintStart_toEndOf="@id/textEsHumano"
+        app:layout_constraintTop_toTopOf="@id/textEsHumano" />
+
+    <!-- SENSORES -->
     <TextView
         android:id="@+id/textPrecencia"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:fontFamily="sans-serif-medium"
         android:text="Sensores Activados:"
         android:textColor="#A09595"
-        app:layout_constraintTop_toBottomOf="@+id/textHora"
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintTop_toBottomOf="@id/textEsHumano"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
@@ -129,13 +139,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:text="Cargando..."
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:lineSpacingExtra="4dp"
-        app:layout_constraintTop_toBottomOf="@+id/textPrecencia"
+        app:layout_constraintTop_toBottomOf="@id/textPrecencia"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

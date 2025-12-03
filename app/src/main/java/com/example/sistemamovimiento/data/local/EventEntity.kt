@@ -6,18 +6,14 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "events")
 data class EventEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-
     val ir: Int,
     val pir: Int,
     val sound: Int,
-
-    val timestamp: Long,
+    val timestamp: Long,     // formato en SEGS (como manda tu backend)
     val enqueuedTime: String,
     val sequenceNumber: Int,
-
     val severity: String,
-
-    // NUEVOS CAMPOS
-    val isHuman: Int,
-    val blobUrl: String
+    val isHuman: Int = 0,
+    val blobUrl: String? = null,
+    val extras: String? = "{}"
 )

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [EventEntity::class],
-    version = 1,
+    version = 2, // <--- CAMBIO IMPORTANTE: Subimos a versión 2
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,7 +25,9 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "events_db"
                 )
-                    .fallbackToDestructiveMigration() // elimina la DB si cambias entidad y evita crashes
+                    // Esto borrará la base de datos vieja y creará una nueva
+                    // automáticamente al detectar el cambio de versión a 2.
+                    .fallbackToDestructiveMigration()
                     .build()
 
                 INSTANCE = instance

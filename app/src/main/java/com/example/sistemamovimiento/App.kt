@@ -1,11 +1,7 @@
 package com.example.sistemamovimiento
 
 import android.app.Application
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.Constraints
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.sistemamovimiento.util.NotificationHelper
 import com.example.sistemamovimiento.work.MotionWorker
 import java.util.concurrent.TimeUnit
@@ -13,9 +9,10 @@ import java.util.concurrent.TimeUnit
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-
+        // crear canal
         NotificationHelper.createChannelIfNeeded(this)
 
+        // Constraints: permite solo con red disponible
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()

@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sistemamovimiento.databinding.FragmentHistoryBinding
 import com.example.sistemamovimiento.viewmodels.HistoryViewModel
 import com.example.sistemamovimiento.viewmodels.HistoryViewModelFactory
-import com.example.sistemamovimiento.ui.history.EventAdapter
-
 
 class HistoryFragment : Fragment() {
 
@@ -25,10 +23,7 @@ class HistoryFragment : Fragment() {
         HistoryViewModelFactory(requireContext())
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHistoryBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -36,38 +31,30 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 🔙 Botón regresar
-        binding.toolbarHistory.setNavigationOnClickListener {
-            findNavController().navigateUp()
-        }
+        binding.toolbarHistory.setNavigationOnClickListener { findNavController().navigateUp() }
 
-        // Recycler
         binding.recyclerHistory.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = EventAdapter(emptyList()) { event ->
-            // Abrir detalle
-            val ts = event.timestamp.let {
-                if (it < 1_000_000_000_000L) it * 1000 else it
-            }.toString()
-
+        adapter = EventAdapter(mutableListOf(), onClick = { event ->
+            val ts = if (event.timestamp < 1_000_000_000_000L) event.timestamp * 1000 else event.timestamp
             val action = HistoryFragmentDirections.actionHistoryFragmentToDetailFragment(
                 title = "Prioridad ${event.severity}",
                 location = "IR ${event.ir}, PIR ${event.pir}, Sonido ${event.sound}",
-                timestamp = ts,
+                timestamp = ts.toString(),
                 imageRes = com.example.sistemamovimiento.R.drawable.securewatch_logo,
                 irValue = event.ir,
                 pirValue = event.pir,
                 soundValue = event.sound
             )
-
+            // Guardar blobUrl en activity intent para que Detail pueda leerla (alternativa sería añadir arg nav)
+            activity?.intent?.putExtra("detail_blobUrl", event.blobUrl)
             findNavController().navigate(action)
-        }
+        })
 
         binding.recyclerHistory.adapter = adapter
 
-        // Cargar eventos
         viewModel.events.observe(viewLifecycleOwner) { list ->
-            adapter.updateData(list)  // Método nuevo
+            adapter.updateData(list)
         }
 
         viewModel.loadLocalEvents()

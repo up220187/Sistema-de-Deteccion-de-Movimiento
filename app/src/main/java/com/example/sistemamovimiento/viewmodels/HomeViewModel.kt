@@ -10,23 +10,20 @@ import com.example.sistemamovimiento.repository.EventRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.*
 
 class HomeViewModel(context: Context) : ViewModel() {
 
     private val repo: EventRepository
-
-    private var instantJob: Job? = null   // Refresco rápido
-    private var backgroundJob: Job? = null // Para pruebas internas (opcional)
+    private var instantJob: Job? = null
 
     private val _lastEvent = MutableLiveData<EventEntity?>()
     val lastEvent: LiveData<EventEntity?> = _lastEvent
 
-    private val _events = MutableLiveData<List<EventEntity>>()
+    private val _events = MutableLiveData<List<EventEntity>>(emptyList())
     val events: LiveData<List<EventEntity>> = _events
 
-    private val _stats = MutableLiveData<DashboardStats>()
-    val stats: LiveData<DashboardStats> = _stats
+    private val _stats = MutableLiveData<DashboardStats?>()
+    val stats: LiveData<DashboardStats?> = _stats
 
     init {
         val db = AppDatabase.getDatabase(context)
@@ -43,23 +40,20 @@ class HomeViewModel(context: Context) : ViewModel() {
 
     suspend fun fetchAndSaveLastEvent() {
         val event = repo.fetchAndSaveLastEvent()
-        _lastEvent.postValue(event)
-        _events.postValue(repo.getLocalEvents())
-        _stats.postValue(repo.getDashboardStats())
+        _lastEvent.value = event
+        _events.value = repo.getLocalEvents()
+        _stats.value = repo.getDashboardStats()
     }
 
-    // ---------------------------------------------------------
-    // 🔥 REFRESCO INSTANTÁNEO CADA 2 SEGUNDOS (solo en Home)
-    // ---------------------------------------------------------
+    // instant refresh loop mientras la app esté en foreground
     fun startInstantRefresh() {
         if (instantJob != null) return
-
         instantJob = viewModelScope.launch {
             while (true) {
                 try {
                     fetchAndSaveLastEvent()
                 } catch (_: Exception) {}
-                delay(2000)   // ⚡ SUPER RÁPIDO dentro de la app
+                delay(15000) // 15s
             }
         }
     }
@@ -69,28 +63,31 @@ class HomeViewModel(context: Context) : ViewModel() {
         instantJob = null
     }
 
-    // ---------------------------------------------------------
-    // FUNCIONES PARA LA GRÁFICA
-    // ---------------------------------------------------------
-    fun countLast7Days(events: List<EventEntity>): Map<Int, Int> {
+    // ayuda para gráfica
+    fun countLast7Days(allEvents: List<EventEntity>): Map<Int, Int> {
         val counts = mutableMapOf<Int, Int>()
         for (i in 0..6) counts[i] = 0
-
-        val now = Calendar.getInstance()
-
-        for (evt in events) {
-            val millis =
-                if (evt.timestamp < 1_000_000_000_000L) evt.timestamp * 1000 else evt.timestamp
-            val cal = Calendar.getInstance().apply { time = Date(millis) }
-
-            val diff =
-                ((now.timeInMillis - cal.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
-
-            if (diff in 0..6) {
-                counts[diff] = (counts[diff] ?: 0) + 1
-            }
+        val now = java.util.Calendar.getInstance()
+        for (evt in allEvents) {
+            val millis = if (evt.timestamp < 1_000_000_000_000L) evt.timestamp * 1000 else evt.timestamp
+            val cal = java.util.Calendar.getInstance().apply { time = java.util.Date(millis) }
+            val diff = daysBetween(cal, now)
+            if (diff in 0..6) counts[diff] = (counts[diff] ?: 0) + 1
         }
-
         return counts
+    }
+
+    private fun daysBetween(day: java.util.Calendar, now: java.util.Calendar): Int {
+        val start = java.util.Calendar.getInstance().apply {
+            timeInMillis = day.timeInMillis
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val end = java.util.Calendar.getInstance().apply {
+            timeInMillis = now.timeInMillis
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+        }
+        return ((end.timeInMillis - start.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
     }
 }

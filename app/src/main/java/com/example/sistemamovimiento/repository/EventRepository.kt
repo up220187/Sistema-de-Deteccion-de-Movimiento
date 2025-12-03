@@ -3,6 +3,7 @@ package com.example.sistemamovimiento.repository
 import com.example.sistemamovimiento.data.local.EventDao
 import com.example.sistemamovimiento.data.local.EventEntity
 import com.example.sistemamovimiento.network.EventApiService
+import java.util.*
 
 data class DashboardStats(
     val dayCount: Int,
@@ -19,32 +20,32 @@ class EventRepository(
         val response = api.getLastEvent()
         val body = response.data.body
 
-        val existing = dao.getLastEvent()
-        if (existing != null && existing.sequenceNumber == response.data.sequenceNumber) {
-            return existing
+        val existingEvent = dao.getLastEvent()
+        if (existingEvent != null && existingEvent.sequenceNumber == response.data.sequenceNumber) {
+            return existingEvent
         }
 
-        // PRIORIDAD:
         val activeCount = listOf(body.ir, body.pir, body.sound).count { it == 1 }
+
         val severity = when (activeCount) {
-            3 -> "Alta"
-            2 -> "Media"
             1 -> "Baja"
+            2 -> "Media"
+            3 -> "Alta"
             else -> "Ninguna"
         }
 
+        // Notar: body.timestamp está en segundos
         val entity = EventEntity(
             ir = body.ir,
             pir = body.pir,
             sound = body.sound,
-
-            timestamp = body.timestamp,        // <-- nombre correcto del JSON
+            timestamp = body.timestamp,
             enqueuedTime = response.data.enqueuedTime,
             sequenceNumber = response.data.sequenceNumber,
             severity = severity,
-
-            isHuman = body.isHuman,            // <-- NEW
-            blobUrl = body.blobUrl             // <-- NEW
+            isHuman = body.isHuman,
+            blobUrl = body.blobUrl,
+            extras = body.extras?.let { GsonHolder.gson.toJson(it) } ?: "{}"
         )
 
         dao.insertEvent(entity)
@@ -56,27 +57,32 @@ class EventRepository(
     suspend fun getLastLocalEvent(): EventEntity? = dao.getLastEvent()
 
     suspend fun getDashboardStats(): DashboardStats {
-        val calendar = java.util.Calendar.getInstance()
+        val calendar = Calendar.getInstance()
 
-        calendar.apply {
-            set(java.util.Calendar.HOUR_OF_DAY, 0)
-            set(java.util.Calendar.MINUTE, 0)
-            set(java.util.Calendar.SECOND, 0)
-            set(java.util.Calendar.MILLISECOND, 0)
-        }
-        val startDay = calendar.timeInMillis / 1000
+        // Start of day (millis -> convert to seconds)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfDay = calendar.timeInMillis / 1000
 
-        calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
-        val startMonth = calendar.timeInMillis / 1000
+        // Start of month
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        val startOfMonth = calendar.timeInMillis / 1000
 
-        calendar.set(java.util.Calendar.MONTH, java.util.Calendar.JANUARY)
-        calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
-        val startYear = calendar.timeInMillis / 1000
+        // Start of year
+        calendar.set(Calendar.MONTH, Calendar.JANUARY)
+        val startOfYear = calendar.timeInMillis / 1000
 
-        return DashboardStats(
-            dayCount = dao.getCountSince(startDay),
-            monthCount = dao.getCountSince(startMonth),
-            yearCount = dao.getCountSince(startYear)
-        )
+        val dayCount = dao.getCountSince(startOfDay)
+        val monthCount = dao.getCountSince(startOfMonth)
+        val yearCount = dao.getCountSince(startOfYear)
+
+        return DashboardStats(dayCount, monthCount, yearCount)
     }
+}
+
+// pequeño holder para Gson sin repetir import en repo
+object GsonHolder {
+    val gson = com.google.gson.Gson()
 }

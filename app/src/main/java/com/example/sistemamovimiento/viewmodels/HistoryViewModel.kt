@@ -12,17 +12,17 @@ class HistoryViewModel(context: Context) : ViewModel() {
 
     private val repo: EventRepository
 
-    private val _history = MutableLiveData<List<EventEntity>>()
-    val history: LiveData<List<EventEntity>> = _history
+    private val _events = MutableLiveData<List<EventEntity>>(emptyList())
+    val events: LiveData<List<EventEntity>> = _events
 
     init {
         val db = AppDatabase.getDatabase(context)
         repo = EventRepository(RetrofitClient.instance, db.eventDao())
     }
 
-    fun loadHistory() {
+    fun loadLocalEvents() {
         viewModelScope.launch {
-            _history.value = repo.getLocalEvents()
+            _events.value = repo.getLocalEvents()
         }
     }
 }
