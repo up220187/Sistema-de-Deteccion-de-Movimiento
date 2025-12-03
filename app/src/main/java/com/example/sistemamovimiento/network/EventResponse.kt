@@ -16,5 +16,8 @@ data class EventBody(
     val ir: Int,
     val pir: Int,
     val sound: Int,
-    val ts: Long
+    val timestamp: Long,
+    val isHuman: Int,
+    val blobUrl: String,
+    val extras: Map<String, Any>?
 )

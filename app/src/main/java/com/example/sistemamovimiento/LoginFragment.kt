@@ -33,7 +33,7 @@ class FragmentLogin : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1️⃣ Si ya hay sesión activa → ir al Home
+        // Si ya hay sesión → ir a Home
         if (UserSession.isLogged(requireContext())) {
             findNavController().navigate(
                 FragmentLoginDirections.actionLoginFragmentToHomeFragment()
@@ -41,7 +41,6 @@ class FragmentLogin : Fragment() {
             return
         }
 
-        // 2️⃣ Botón iniciar sesión
         binding.buttonSignIn.setOnClickListener {
             val email = binding.editTextEmail.text.toString().trim()
             val pass = binding.editTextPassword.text.toString().trim()
@@ -54,11 +53,9 @@ class FragmentLogin : Fragment() {
             val success = viewModel.login(email, pass)
 
             if (success) {
-
-                // Guardar sesión REAL
                 UserSession.login(requireContext())
-
                 Toast.makeText(requireContext(), "Bienvenido", Toast.LENGTH_SHORT).show()
+
                 findNavController().navigate(
                     FragmentLoginDirections.actionLoginFragmentToHomeFragment()
                 )

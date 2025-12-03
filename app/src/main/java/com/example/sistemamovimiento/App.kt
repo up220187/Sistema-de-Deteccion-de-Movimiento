@@ -14,15 +14,12 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // crear canal (por si se quieren ver notificaciones cuando app esté abierta)
         NotificationHelper.createChannelIfNeeded(this)
 
-        // Constraints: necesita red
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        // PeriodicWork - 15 minutos mínimo por WorkManager
         val workRequest = PeriodicWorkRequestBuilder<MotionWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()

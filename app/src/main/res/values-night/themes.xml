@@ -1,7 +1,17 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+<resources>
+
+    <!-- Tema base sin ActionBar -->
     <style name="Base.Theme.SistemaMovimiento" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- Aquí puedes poner colores si quieres -->
     </style>
+
+    <!-- Tema final de la app -->
+    <style name="Theme.SistemaMovimiento" parent="Base.Theme.SistemaMovimiento">
+        <!-- Evitar que aparezca la ActionBar del sistema -->
+        <item name="windowActionBar">false</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
 </resources>

@@ -6,12 +6,6 @@ data class DayDetection(
     val count: Int   // Número de detecciones
 )
 
-data class FakeEvent(
-    val title: String,
-    val location: String,
-    val timestamp: String,
-    val imageRes: Int? = null
-)
 
 data class FakeStats(
     val today: Int,

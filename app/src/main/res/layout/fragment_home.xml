@@ -18,11 +18,11 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_main"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="76dp"
             android:background="@color/medium_blue"
             app:menu="@menu/main_menu"
             app:title="SecureWatch"
-            app:titleTextColor="@color/white"/>
+            app:titleTextColor="@color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- SWIPE REFRESH LAYOUT (Envuelve al ScrollView) -->

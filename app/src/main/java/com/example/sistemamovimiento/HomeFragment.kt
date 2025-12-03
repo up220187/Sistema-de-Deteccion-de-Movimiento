@@ -6,72 +6,41 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.sistemamovimiento.R
 import com.example.sistemamovimiento.data.UserSession
-import com.example.sistemamovimiento.data.local.AppDatabase
 import com.example.sistemamovimiento.data.local.EventEntity
 import com.example.sistemamovimiento.databinding.CardStatItemBinding
 import com.example.sistemamovimiento.databinding.FragmentHomeBinding
-import com.example.sistemamovimiento.network.RetrofitClient
-import com.example.sistemamovimiento.repository.EventRepository
+import com.example.sistemamovimiento.viewmodels.HomeViewModel
+import com.example.sistemamovimiento.viewmodels.HomeViewModelFactory
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
+    // Correctos ahora según TU layout
     private lateinit var statTodayBinding: CardStatItemBinding
     private lateinit var statWeekBinding: CardStatItemBinding
     private lateinit var statActiveBinding: CardStatItemBinding
 
-    private lateinit var repository: EventRepository
     private lateinit var barChart: BarChart
 
-    private var autoRefreshJobRunning = true
-
-    // Agrega esta función en tu clase HomeFragment
-    private fun setupDynamicStats() {
-        lifecycleScope.launch {
-            // 1. Obtener los conteos de la base de datos
-            val stats = repository.getDashboardStats()
-
-            // 2. Preparar formateadores de fecha "bonitos"
-            val locale = Locale("es", "ES")
-            val todayFormat = SimpleDateFormat("dd 'de' MMMM", locale) // Ej: 12 de Febrero
-            val monthFormat = SimpleDateFormat("MMMM", locale)         // Ej: Febrero
-            val yearFormat = SimpleDateFormat("yyyy", locale)          // Ej: 2025
-
-            val now = Date()
-
-            // --- TARJETA 1: DÍA ---
-            statTodayBinding.textStatValue.text = stats.dayCount.toString()
-            // Capitalizamos la primera letra (ej: "febrero" -> "Febrero")
-            statTodayBinding.textStatLabel.text = "Hoy, ${todayFormat.format(now).replaceFirstChar { it.uppercase() }}"
-
-            // --- TARJETA 2: MES (Reusamos statWeek) ---
-            statWeekBinding.textStatValue.text = stats.monthCount.toString()
-            val mesBonito = monthFormat.format(now).replaceFirstChar { it.uppercase() }
-            statWeekBinding.textStatLabel.text = "Mes de $mesBonito"
-
-            // --- TARJETA 3: AÑO (Reusamos statActive) ---
-            statActiveBinding.textStatValue.text = stats.yearCount.toString()
-            statActiveBinding.textStatLabel.text = "Año ${yearFormat.format(now)}"
-        }
+    private val viewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(requireContext())
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -79,12 +48,10 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
 
+        // Bindings EXACTOS a tus IDs
         statTodayBinding = CardStatItemBinding.bind(binding.statToday.root)
         statWeekBinding = CardStatItemBinding.bind(binding.statWeek.root)
         statActiveBinding = CardStatItemBinding.bind(binding.statActive.root)
-
-        val db = AppDatabase.getDatabase(requireContext())
-        repository = EventRepository(RetrofitClient.instance, db.eventDao())
 
         barChart = binding.barChartDetections
         setupChartAppearance()
@@ -95,73 +62,71 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Si no hay sesión
         if (!UserSession.isLogged(requireContext())) {
-            findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLoginFragment())
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeFragmentToLoginFragment()
+            )
             return
         }
 
-        setupToolbarMenu()
 
-        setupDynamicStats()
+        // Último evento
+        viewModel.lastEvent.observe(viewLifecycleOwner) {
+            it?.let { event -> updateLastEventUI(event) }
+        }
 
-        // cargar datos locales al abrir
-        loadLocalData()
+        // Eventos para gráfica
+        viewModel.events.observe(viewLifecycleOwner) {
+            updateChart()
+        }
 
-        // después de setupToolbarMenu() y loadLocalData()
+        // Stats día / mes / año
+        viewModel.stats.observe(viewLifecycleOwner) { stats ->
+            stats?.let { s ->
+                val locale = Locale("es", "ES")
+                val now = Date()
+
+                val todayFormat = SimpleDateFormat("dd 'de' MMMM", locale)
+                val monthFormat = SimpleDateFormat("MMMM", locale)
+                val yearFormat = SimpleDateFormat("yyyy", locale)
+
+                statTodayBinding.textStatValue.text = s.dayCount.toString()
+                statTodayBinding.textStatLabel.text =
+                    "Hoy, ${todayFormat.format(now).replaceFirstChar { it.uppercase() }}"
+
+                statWeekBinding.textStatValue.text = s.monthCount.toString()
+                statWeekBinding.textStatLabel.text =
+                    "Mes de ${monthFormat.format(now).replaceFirstChar { it.uppercase() }}"
+
+                statActiveBinding.textStatValue.text = s.yearCount.toString()
+                statActiveBinding.textStatLabel.text =
+                    "Año ${yearFormat.format(now)}"
+            }
+        }
+
+        // Swipe refresher
         binding.swipeRefresh.setOnRefreshListener {
             lifecycleScope.launch {
-                try {
-                    val event = repository.fetchAndSaveLastEvent()
-                    updateLastEventUI(event)
-                    updateChartWithEvents()
-                    setupDynamicStats()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                } finally {
-                    binding.swipeRefresh.isRefreshing = false
-                }
+                viewModel.fetchAndSaveLastEvent()
+                binding.swipeRefresh.isRefreshing = false
             }
         }
 
+        // Datos iniciales
+        viewModel.loadLocalData()
 
-        // iniciar refresco automático
-        startAutoRefresh()
+        // Refresh instantáneo cada 15 segundos dentro de la app
+        viewModel.startInstantRefresh()
     }
 
-    // ------------------------------
-    // AUTO REFRESH CADA 15 SEGUNDOS
-    // ------------------------------
-    private fun startAutoRefresh() {
-        lifecycleScope.launch {
-            while (autoRefreshJobRunning) {
-                try {
-                    val event = repository.fetchAndSaveLastEvent()
-                    updateLastEventUI(event)
-                    updateChartWithEvents()
-                    setupDynamicStats()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                delay(15000) // 15 segundos
-            }
-        }
-    }
-
-    private fun loadLocalData() {
-        lifecycleScope.launch {
-            val lastEvent = repository.getLastLocalEvent()
-            if (lastEvent != null) updateLastEventUI(lastEvent)
-            updateChartWithEvents()
-        }
-    }
-
-    // ------------------------------
-    // -------- UI EVENTO ------------
-    // ------------------------------
+    // -----------------------------------------------------
+    // ----------- MOSTRAR INFORMACIÓN DEL EVENTO ----------
+    // -----------------------------------------------------
     private fun updateLastEventUI(event: EventEntity) {
 
         val timestampMillis =
-            if (event.timestamp < 1000000000000L) event.timestamp * 1000 else event.timestamp
+            if (event.timestamp < 1_000_000_000_000L) event.timestamp * 1000 else event.timestamp
 
         val dateObj = Date(timestampMillis)
 
@@ -176,11 +141,12 @@ class HomeFragment : Fragment() {
         if (event.pir == 1) activeList.add("Movimiento")
         if (event.sound == 1) activeList.add("Sonido")
 
-        val count = activeList.size
         val sensorsText =
             if (activeList.isNotEmpty()) activeList.joinToString(", ") else "Ninguno"
+
         binding.textSensorsActive.text = sensorsText
 
+        val count = activeList.size
         val (priorityText, colorHex) = when (count) {
             3 -> "ALTA" to "#FF5252"
             2 -> "MEDIA" to "#FFD740"
@@ -190,11 +156,11 @@ class HomeFragment : Fragment() {
 
         binding.textPriorityBadge.text = priorityText
         binding.textPriorityBadge.background.setTint(Color.parseColor(colorHex))
-        binding.textPriorityBadge.setTextColor(if (count == 2) Color.BLACK else Color.WHITE)
+        binding.textPriorityBadge.setTextColor(
+            if (count == 2) Color.BLACK else Color.WHITE
+        )
 
-        binding.lblDetected.text = "Sensor activado"
-
-        // navegar con detalles
+        // Botón Detalles
         binding.buttonViewDetails.setOnClickListener {
             val action = HomeFragmentDirections.actionHomeFragmentToDetailFragment(
                 title = "Prioridad $priorityText",
@@ -209,131 +175,63 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // ------------------------------
-    // ----------- GRÁFICA ----------
-    // ------------------------------
+    // -----------------------------------------------------
+    // ------------------------ GRÁFICA ---------------------
+    // -----------------------------------------------------
     private fun setupChartAppearance() {
         barChart.setDrawGridBackground(false)
         barChart.setDrawBorders(false)
         barChart.description.isEnabled = false
         barChart.legend.isEnabled = false
 
-        val xAxis = barChart.xAxis
-        xAxis.position = XAxis.XAxisPosition.BOTTOM
-        xAxis.setDrawGridLines(false)
-        xAxis.textColor = Color.WHITE
-        xAxis.granularity = 1f
-
-        val leftAxis = barChart.axisLeft
-        leftAxis.setDrawGridLines(true)
-        leftAxis.gridColor = Color.parseColor("#33FFFFFF")
-        leftAxis.textColor = Color.WHITE
-        leftAxis.axisMinimum = 0f
-
         barChart.axisRight.isEnabled = false
-    }
 
-    private fun updateChartWithEvents() {
-        lifecycleScope.launch {
-            val events = repository.getLocalEvents()
-            val counts = aggregateLast7DaysCounts(events)
+        barChart.xAxis.apply {
+            position = XAxis.XAxisPosition.BOTTOM
+            setDrawGridLines(false)
+            textColor = Color.WHITE
+            granularity = 1f
+        }
 
-            val entries = ArrayList<BarEntry>()
-            val labels = ArrayList<String>()
-
-            val cal = Calendar.getInstance()
-            for (i in 6 downTo 0) {
-                val d = Calendar.getInstance()
-                d.add(Calendar.DAY_OF_YEAR, -i)
-                labels.add(SimpleDateFormat("EE", Locale("es", "ES")).format(d.time))
-
-                val valCount = counts[i] ?: 0
-                entries.add(BarEntry((6 - i).toFloat(), valCount.toFloat()))
-            }
-
-            val set = BarDataSet(entries, "Detecciones")
-            set.color = Color.parseColor("#4FC3F7")
-            set.valueTextColor = Color.WHITE
-            set.valueTextSize = 12f
-
-            val data = BarData(set)
-            data.barWidth = 0.5f
-
-            barChart.data = data
-            barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-            barChart.invalidate()
+        barChart.axisLeft.apply {
+            setDrawGridLines(true)
+            gridColor = Color.parseColor("#33FFFFFF")
+            textColor = Color.WHITE
+            axisMinimum = 0f
         }
     }
 
-    private fun aggregateLast7DaysCounts(allEvents: List<EventEntity>): Map<Int, Int> {
-        val counts = mutableMapOf<Int, Int>()
-        for (i in 0..6) counts[i] = 0
+    private fun updateChart() {
+        val events = viewModel.events.value ?: emptyList()
+        val counts = viewModel.countLast7Days(events)
 
-        val now = Calendar.getInstance()
+        val entries = ArrayList<BarEntry>()
+        val labels = ArrayList<String>()
 
-        for (evt in allEvents) {
-            val millis =
-                if (evt.timestamp < 1_000_000_000_000L) evt.timestamp * 1000 else evt.timestamp
-            val cal = Calendar.getInstance().apply { time = Date(millis) }
-            val diff = daysBetween(cal, now)
-            if (diff in 0..6) counts[diff] = (counts[diff] ?: 0) + 1
+        // Últimos 7 días
+        for (i in 6 downTo 0) {
+            val d = Calendar.getInstance()
+            d.add(Calendar.DAY_OF_YEAR, -i)
+            labels.add(SimpleDateFormat("EE", Locale("es", "ES")).format(d.time))
+            entries.add(BarEntry((6 - i).toFloat(), counts[i]?.toFloat() ?: 0f))
         }
 
-        return counts
+        val set = BarDataSet(entries, "Detecciones").apply {
+            color = Color.parseColor("#4FC3F7")
+            valueTextSize = 12f
+            valueTextColor = Color.WHITE
+        }
+
+        barChart.data = BarData(set).apply { barWidth = 0.5f }
+        barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+        barChart.invalidate()
     }
 
-    private fun daysBetween(day: Calendar, now: Calendar): Int {
-        val start = Calendar.getInstance().apply {
-            timeInMillis = day.timeInMillis
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val end = Calendar.getInstance().apply {
-            timeInMillis = now.timeInMillis
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        return ((end.timeInMillis - start.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
-    }
 
-    private fun setupToolbarMenu() {
-        binding.toolbarMain.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_notifications,
-                R.id.menu_history -> {
-                    findNavController().navigate(
-                        HomeFragmentDirections.actionHomeFragmentToHistoryFragment()
-                    )
-                    true
-                }
-
-                R.id.menu_settings -> {
-                    findNavController().navigate(
-                        HomeFragmentDirections.actionHomeFragmentToSettingsFragment()
-                    )
-                    true
-                }
-
-                R.id.menu_logout -> {
-                    UserSession.logout(requireContext())
-                    findNavController().navigate(
-                        HomeFragmentDirections.actionHomeFragmentToLoginFragment()
-                    )
-                    true
-                }
-
-                else -> false
-            }
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        autoRefreshJobRunning = false
+        viewModel.stopInstantRefresh()
         _binding = null
     }
 }

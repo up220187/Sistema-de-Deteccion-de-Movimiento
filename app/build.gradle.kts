@@ -86,6 +86,12 @@ dependencies {
 // Optional: OkHttp interceptor para debugging
     implementation ("com.squareup.okhttp3:okhttp:4.9.3")
 
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // coil
+    implementation("io.coil-kt:coil:2.5.0")
+
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     testImplementation(libs.junit)

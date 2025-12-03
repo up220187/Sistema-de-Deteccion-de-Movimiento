@@ -11,25 +11,30 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.text.color
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.sistemamovimiento.MainActivity
+import com.example.sistemamovimiento.R
 import com.example.sistemamovimiento.data.UserRepository
 import com.example.sistemamovimiento.data.UserSession
 import com.example.sistemamovimiento.databinding.FragmentSettingsBinding
 import com.example.sistemamovimiento.utils.SessionManager
-import com.example.sistemamovimiento.R
+import com.example.sistemamovimiento.viewmodels.SettingsViewModel
+import com.example.sistemamovimiento.viewmodels.SettingsViewModelFactory
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
-    // Necesitamos estos dos para manejar la sesión y el guardado JSON
     private lateinit var sessionManager: SessionManager
     private lateinit var userRepository: UserRepository
 
     private var isPasswordVisible = false
+
+    private val viewModel: SettingsViewModel by viewModels {
+        SettingsViewModelFactory(requireContext())
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -41,7 +46,6 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializamos
         sessionManager = SessionManager(requireContext())
         userRepository = UserRepository(requireContext())
 
@@ -56,69 +60,64 @@ class SettingsFragment : Fragment() {
         setupNotifications()
         setupSensitivity()
 
-        // Logout
+        binding.btnToggleVisibility.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            updateUI()
+        }
+
+        // LOGOUT
         binding.buttonLogout.setOnClickListener {
-            UserSession.logout(requireContext()) // Tu objeto singleton
-            sessionManager.clearSession()        // Tu manager de preferencias
+            UserSession.logout(requireContext())
+            sessionManager.clearSession()
 
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
-
-        binding.btnToggleVisibility.setOnClickListener {
-            isPasswordVisible = !isPasswordVisible // Cambiar estado (true/false)
-            updateUI() // Refrescar texto
-        }
     }
 
+    // ---------------- UI ----------------
     private fun updateUI() {
-        val currentUser = sessionManager.getSession()
+        val currentUser = sessionManager.getSession() ?: return
 
-        if (currentUser != null) {
-            binding.profileName.text = currentUser.nombre
-            binding.tvCurrentName.text = currentUser.nombre
-            binding.tvCurrentPhone.text = currentUser.telefono
-            binding.tvCurrentEmail.text = currentUser.correo // El correo es el ID, mejor no editarlo
+        binding.profileName.text = currentUser.nombre
+        binding.tvCurrentName.text = currentUser.nombre
+        binding.tvCurrentPhone.text = currentUser.telefono
+        binding.tvCurrentEmail.text = currentUser.correo
 
-            if (isPasswordVisible) {
-                // Mostrar contraseña real
-                binding.tvCurrentPassword.text = currentUser.contrasena
-                // Cambiar color del icono para indicar que está activo
-                binding.btnToggleVisibility.setColorFilter(resources.getColor(R.color.accent_blue, null))
-            } else {
-                // Mostrar asteriscos
-                binding.tvCurrentPassword.text = "*".repeat(currentUser.contrasena.length)
-                // Color gris normal
-                binding.btnToggleVisibility.setColorFilter(resources.getColor(R.color.grey_text, null))
-            }
+        if (isPasswordVisible) {
+            binding.tvCurrentPassword.text = currentUser.contrasena
+            binding.btnToggleVisibility.setColorFilter(
+                resources.getColor(R.color.accent_blue, null)
+            )
+        } else {
+            binding.tvCurrentPassword.text = "*".repeat(currentUser.contrasena.length)
+            binding.btnToggleVisibility.setColorFilter(
+                resources.getColor(R.color.grey_text, null)
+            )
         }
     }
 
+    // ---------------- EDITAR CAMPOS ----------------
     private fun setupEditButtons() {
-        // Editar Nombre
+
+        // Nombre
         binding.btnEditName.setOnClickListener {
             val user = sessionManager.getSession() ?: return@setOnClickListener
+
             showEditDialog("Editar Nombre", user.nombre) { newValue ->
-
-                // 1. Modificar objeto
                 user.nombre = newValue
-
-                // 2. Guardar en JSON (Permanente)
                 userRepository.updateUser(user)
-
-                // 3. Guardar en Sesión (Actual)
                 sessionManager.saveSession(user)
-
-                // 4. Actualizar Vista
                 updateUI()
                 Toast.makeText(context, "Nombre actualizado", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Editar Teléfono
+        // Teléfono
         binding.btnEditPhone.setOnClickListener {
             val user = sessionManager.getSession() ?: return@setOnClickListener
+
             showEditDialog("Editar Teléfono", user.telefono, isPhone = true) { newValue ->
                 user.telefono = newValue
                 userRepository.updateUser(user)
@@ -128,22 +127,21 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        // Editar Contraseña
+        // Contraseña
         binding.btnEditPassword.setOnClickListener {
             val user = sessionManager.getSession() ?: return@setOnClickListener
+
             showEditDialog("Cambiar Contraseña", "", isPassword = true) { newValue ->
-                if (newValue.isNotEmpty()) {
-                    user.contrasena = newValue
-                    userRepository.updateUser(user)
-                    sessionManager.saveSession(user)
-                    updateUI()
-                    Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
-                }
+                user.contrasena = newValue
+                userRepository.updateUser(user)
+                sessionManager.saveSession(user)
+                updateUI()
+                Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // --- Tus funciones auxiliares (sin cambios mayores) ---
+    // Dialog reutilizable
     private fun showEditDialog(
         title: String,
         currentValue: String,
@@ -157,32 +155,35 @@ class SettingsFragment : Fragment() {
         val input = EditText(requireContext())
         input.setText(if (isPassword) "" else currentValue)
 
-        if (isPhone) {
-            input.inputType = InputType.TYPE_CLASS_PHONE
-        } else if (isPassword) {
-            input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            input.hint = "Nueva contraseña"
-        } else {
-            input.inputType = InputType.TYPE_CLASS_TEXT
+        input.inputType = when {
+            isPhone -> InputType.TYPE_CLASS_PHONE
+            isPassword -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            else -> InputType.TYPE_CLASS_TEXT
         }
 
         val container = FrameLayout(requireContext())
         val params = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
         )
         params.setMargins(50, 0, 50, 0)
         input.layoutParams = params
         container.addView(input)
         builder.setView(container)
 
-        builder.setPositiveButton("Guardar") { _, _ -> onSave(input.text.toString()) }
+        builder.setPositiveButton("Guardar") { _, _ ->
+            val txt = input.text.toString()
+            if (txt.isNotEmpty()) onSave(txt)
+        }
+
         builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.cancel() }
         builder.show()
     }
 
+    // ---------------- NOTIFICACIONES ----------------
     private fun setupNotifications() {
-        // (Tu código original de notificaciones aquí)
         val prefs = requireContext().getSharedPreferences("SETTINGS", AppCompatActivity.MODE_PRIVATE)
+
         val realtime = binding.settingAlertRealtime
         val email = binding.settingAlertEmail
         val sms = binding.settingAlertSms
@@ -195,13 +196,21 @@ class SettingsFragment : Fragment() {
         email.settingSwitch.isChecked = prefs.getBoolean("alert_email", true)
         sms.settingSwitch.isChecked = prefs.getBoolean("alert_sms", true)
 
-        realtime.settingSwitch.setOnCheckedChangeListener { _, v -> prefs.edit().putBoolean("alert_realtime", v).apply() }
-        email.settingSwitch.setOnCheckedChangeListener { _, v -> prefs.edit().putBoolean("alert_email", v).apply() }
-        sms.settingSwitch.setOnCheckedChangeListener { _, v -> prefs.edit().putBoolean("alert_sms", v).apply() }
+        realtime.settingSwitch.setOnCheckedChangeListener { _, v ->
+            prefs.edit().putBoolean("alert_realtime", v).apply()
+        }
+
+        email.settingSwitch.setOnCheckedChangeListener { _, v ->
+            prefs.edit().putBoolean("alert_email", v).apply()
+        }
+
+        sms.settingSwitch.setOnCheckedChangeListener { _, v ->
+            prefs.edit().putBoolean("alert_sms", v).apply()
+        }
     }
 
+    // ---------------- SENSIBILIDAD ----------------
     private fun setupSensitivity() {
-        // (Tu código original de sensibilidad aquí)
         binding.textSensitivityValue.setOnClickListener {
             val next = when (binding.textSensitivityValue.text.toString()) {
                 "Baja" -> "Media"
