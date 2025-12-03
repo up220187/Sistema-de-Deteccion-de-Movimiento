@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -41,6 +42,8 @@ class HomeFragment : Fragment() {
     private lateinit var barChart: BarChart
 
     private var autoRefreshJobRunning = true
+
+    private var lastProcessedEventId: Int = -1
 
     // Agrega esta función en tu clase HomeFragment
     private fun setupDynamicStats() {
@@ -209,6 +212,16 @@ class HomeFragment : Fragment() {
             )
             findNavController().navigate(action)
         }
+
+        if (event.id != lastProcessedEventId) {
+            lastProcessedEventId = event.id
+
+            // Solo enviamos si la prioridad es MEDIA o ALTA (opcional, para ahorrar saldo)
+            // O quita el if si quieres que envie siempre.
+            if (event.severity == "Alta" || event.severity == "Media") {
+                checkAndSendSms(event)
+            }
+        }
     }
 
     // ------------------------------
@@ -337,5 +350,46 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         autoRefreshJobRunning = false
         _binding = null
+    }
+
+    private fun checkAndSendSms(event: EventEntity) {
+        // 1. Verificar si la opción está activada en ajustes
+        val prefs = requireContext().getSharedPreferences("SETTINGS",
+            AppCompatActivity.MODE_PRIVATE)
+        val isSmsEnabled = prefs.getBoolean("alert_sms", false)
+
+        if (!isSmsEnabled) return
+
+        // 2. Verificar si tenemos permiso
+        if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.SEND_SMS)
+            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            return // No hay permiso, no hacemos nada
+        }
+
+        // 3. Obtener teléfono del usuario actual
+        val sessionManager = com.example.sistemamovimiento.utils.SessionManager(requireContext())
+        val user = sessionManager.getSession() ?: return
+        val phoneNumber = user.telefono
+
+        if (phoneNumber.isEmpty()) return
+
+        // 4. Construir mensaje
+        val sensores = mutableListOf<String>()
+        if (event.ir == 1) sensores.add("IR")
+        if (event.pir == 1) sensores.add("Movimiento")
+        if (event.sound == 1) sensores.add("Sonido")
+        if (event.isHuman == 1) sensores.add("HUMANO DETECTADO")
+
+        val mensaje = "ALERTA SecureWatch: Se detectó actividad (${event.severity}). Sensores: ${sensores.joinToString(", ")}"
+
+        // 5. Enviar SMS
+        try {
+            val smsManager = android.telephony.SmsManager.getDefault()
+            smsManager.sendTextMessage(phoneNumber, null, mensaje, null, null)
+            // Opcional: Toast para avisar que se envió (solo para pruebas)
+            // android.widget.Toast.makeText(requireContext(), "SMS enviado a $phoneNumber", android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

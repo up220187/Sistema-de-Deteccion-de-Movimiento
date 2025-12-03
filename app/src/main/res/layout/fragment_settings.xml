@@ -289,51 +289,11 @@ app:layout_constraintBottom_toBottomOf="parent">
         android:id="@+id/settingAlertRealtime"
         layout="@layout/item_setting_switch" />
 
-    <include
-        android:id="@+id/settingAlertEmail"
-        layout="@layout/item_setting_switch" />
 
     <include
         android:id="@+id/settingAlertSms"
         layout="@layout/item_setting_switch" />
 
-    <!-- SENSOR -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sensor"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingVertical="12dp"
-        android:background="@color/medium_blue"
-        android:layout_marginBottom="20dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Sensibilidad de Detección"
-            android:textColor="@color/white"
-            android:paddingStart="16dp"
-            android:textSize="16sp"/>
-
-        <TextView
-            android:id="@+id/text_sensitivity_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Media"
-            android:textColor="@color/accent_blue"
-            android:paddingEnd="16dp"
-            android:textSize="16sp"/>
-    </LinearLayout>
 
     <Button
         android:id="@+id/button_logout"

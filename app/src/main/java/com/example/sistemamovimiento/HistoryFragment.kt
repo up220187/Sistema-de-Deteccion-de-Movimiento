@@ -45,7 +45,7 @@ class HistoryFragment : Fragment() {
 
         lifecycleScope.launch {
             // 1. Obtenemos la lista original de la BD (Entidades completas con IR, PIR, Sound)
-            val entities = repo.getLocalEvents().reversed() // Invertimos aquí para que coincida con la UI
+            val entities = repo.getLocalEvents() // Invertimos aquí para que coincida con la UI
 
             // 2. Creamos la lista visual para el Adapter
             val uiEvents = entities.map { entity ->
