@@ -98,6 +98,14 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) !=
+                android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+            }
+        }
+
+
         if (!UserSession.isLogged(requireContext())) {
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLoginFragment())
             return
@@ -134,21 +142,37 @@ class HomeFragment : Fragment() {
     // ------------------------------
     // AUTO REFRESH CADA 15 SEGUNDOS
     // ------------------------------
+    // En HomeFragment.kt
+
     private fun startAutoRefresh() {
         lifecycleScope.launch {
             while (autoRefreshJobRunning) {
                 try {
+                    // 1. Esto ya descarga, guarda en Room y devuelve la entidad completa
+                    // gracias a la lógica que pusimos en EventRepository
                     val event = repository.fetchAndSaveLastEvent()
+
                     updateLastEventUI(event)
                     updateChartWithEvents()
                     setupDynamicStats()
+
+                    // Lógica de SMS instantánea (ya la tienes, la mantenemos)
+                    if (event.id != lastProcessedEventId) {
+                        lastProcessedEventId = event.id
+                        if (event.severity == "Alta" || event.severity == "Media") {
+                            checkAndSendSms(event)
+                        }
+                    }
+
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                delay(15000) // 15 segundos
+                // 2. Reducimos el tiempo a 5 segundos para "sentir" el tiempo real
+                delay(5000)
             }
         }
     }
+
 
     private fun loadLocalData() {
         lifecycleScope.launch {
@@ -345,6 +369,18 @@ class HomeFragment : Fragment() {
             }
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        autoRefreshJobRunning = false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        autoRefreshJobRunning = true
+        startAutoRefresh()
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sistemamovimiento.EventAdapter
-import com.example.sistemamovimiento.FakeEvent // Asegúrate de tener esto o tu modelo UI
+// Ya no necesitamos importar FakeEvent
 import com.example.sistemamovimiento.R
 import com.example.sistemamovimiento.data.local.AppDatabase
 import com.example.sistemamovimiento.databinding.FragmentHistoryBinding
@@ -31,69 +31,49 @@ class HistoryFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState) // Importante llamar a super
 
-        // Configurar Toolbar
         val activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(binding.toolbarHistory)
         binding.toolbarHistory.setNavigationOnClickListener { findNavController().popBackStack() }
 
         binding.recyclerViewEvents.layoutManager = LinearLayoutManager(requireContext())
 
-        // Obtener datos reales
         val db = AppDatabase.getDatabase(requireContext())
         val repo = EventRepository(RetrofitClient.instance, db.eventDao())
 
         lifecycleScope.launch {
-            // 1. Obtenemos la lista original de la BD (Entidades completas con IR, PIR, Sound)
-            val entities = repo.getLocalEvents() // Invertimos aquí para que coincida con la UI
+            // 1. Obtenemos la lista REAL de la base de datos
+            val entities = repo.getLocalEvents()
 
-            // 2. Creamos la lista visual para el Adapter
-            val uiEvents = entities.map { entity ->
-                val ts = if(entity.timestamp < 1000000000000L) entity.timestamp * 1000 else entity.timestamp
-                val dateStr = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(ts))
+            // 2. Se la pasamos DIRECTAMENTE al adapter. ¡Mucho más fácil!
+            val adapter = EventAdapter(entities) { selectedEvent ->
 
-                // Calcular sensores activos para el subtítulo (solo visual)
-                val activeCount = listOf(entity.ir, entity.pir, entity.sound).count { it == 1 }
+                // Al hacer click, ya tenemos el objeto 'selectedEvent' (EventEntity)
+                // Calculamos timestamp correcto
+                val tsMillis = if(selectedEvent.timestamp < 1000000000000L) selectedEvent.timestamp * 1000 else selectedEvent.timestamp
 
-                FakeEvent(
-                    title = "Prioridad ${entity.severity.uppercase()}", // "Prioridad BAJA" (Igual que en Home)
+                // Recalculamos textos para enviar al detalle
+                val activeCount = listOf(selectedEvent.ir, selectedEvent.pir, selectedEvent.sound).count { it == 1 }
+
+                val action = HistoryFragmentDirections.actionHistoryFragmentToDetailFragment(
+                    title = "Prioridad ${selectedEvent.severity.uppercase()}",
+                    timestamp = tsMillis.toString(),
                     location = "Sensores activos: $activeCount",
-                    timestamp = dateStr,
-                    imageRes = R.drawable.securewatch_logo
+                    imageRes = R.drawable.securewatch_logo, // Argumento legacy, ya no importa tanto porque usamos URL
+
+                    // Datos reales
+                    irValue = selectedEvent.ir,
+                    pirValue = selectedEvent.pir,
+                    soundValue = selectedEvent.sound,
+                    isHuman = selectedEvent.isHuman,
+                    blobUrl = selectedEvent.blobUrl
                 )
-            }
-
-            // 3. Configuramos el Adapter
-            val adapter = EventAdapter(uiEvents) { fakeEvent ->
-
-                // A) Encontramos el índice de este elemento en la lista visual
-                val index = uiEvents.indexOf(fakeEvent)
-
-                // B) Recuperamos la entidad original usando ese mismo índice
-                if (index != -1 && index < entities.size) {
-                    val originalEntity = entities[index]
-
-                    // C) Navegamos pasando los datos REALES de la entidad
-                    val action = HistoryFragmentDirections.actionHistoryFragmentToDetailFragment(
-                        title = fakeEvent.title,
-                        timestamp = (if(originalEntity.timestamp < 1000000000000L) originalEntity.timestamp * 1000 else originalEntity.timestamp).toString(),
-                        location = fakeEvent.location,
-                        imageRes = R.drawable.securewatch_logo,
-
-                        // ¡AQUÍ ESTÁ LA CORRECCIÓN!: Pasamos los valores de la BD
-                        irValue = originalEntity.ir,
-                        pirValue = originalEntity.pir,
-                        soundValue = originalEntity.sound,
-                        isHuman = originalEntity.isHuman,
-                        blobUrl = originalEntity.blobUrl
-                    )
-                    findNavController().navigate(action)
-                }
+                findNavController().navigate(action)
             }
 
             binding.recyclerViewEvents.adapter = adapter
         }
-
     }
 
     override fun onDestroyView() {

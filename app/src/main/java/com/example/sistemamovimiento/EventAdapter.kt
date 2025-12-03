@@ -6,10 +6,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.sistemamovimiento.data.local.EventEntity
+import java.text.SimpleDateFormat
+import java.util.*
 
 class EventAdapter(
-    private val items: List<FakeEvent>,
-    private val onClick: (FakeEvent) -> Unit
+    private val items: List<EventEntity>,
+    private val onClick: (EventEntity) -> Unit
 ) : RecyclerView.Adapter<EventAdapter.EventViewHolder>() {
 
     inner class EventViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -25,14 +29,35 @@ class EventAdapter(
     }
 
     override fun onBindViewHolder(holder: EventViewHolder, position: Int) {
-        val e = items[position]
-        holder.title.text = e.title
-        holder.location.text = e.location
-        holder.timestamp.text = e.timestamp
-        // imagen placeholder
-        holder.thumb.setImageResource(e.imageRes ?: R.drawable.securewatch_logo)
+        val event = items[position]
 
-        holder.itemView.setOnClickListener { onClick(e) }
+        // 1. Título basado en severidad
+        holder.title.text = "Prioridad ${event.severity.uppercase()}"
+
+        // 2. Subtítulo: Contar sensores activos
+        val activeCount = listOf(event.ir, event.pir, event.sound).count { it == 1 }
+        holder.location.text = "Sensores activos: $activeCount"
+
+        // 3. Formatear fecha
+        // Ajuste por si viene en segundos o milisegundos
+        val tsMillis = if (event.timestamp < 1000000000000L) event.timestamp * 1000 else event.timestamp
+        val date = Date(tsMillis)
+        val format = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+        holder.timestamp.text = format.format(date)
+
+        // 4. Imagen con Glide usando blobUrl directo de la entidad
+        if (!event.blobUrl.isNullOrEmpty()) {
+            Glide.with(holder.itemView.context)
+                .load(event.blobUrl)
+                .placeholder(R.drawable.securewatch_logo)
+                .error(R.drawable.securewatch_logo)
+                .centerCrop()
+                .into(holder.thumb)
+        } else {
+            holder.thumb.setImageResource(R.drawable.securewatch_logo)
+        }
+
+        holder.itemView.setOnClickListener { onClick(event) }
     }
 
     override fun getItemCount(): Int = items.size

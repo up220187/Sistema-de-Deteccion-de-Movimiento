@@ -1,7 +1,6 @@
 package com.example.sistemamovimiento.work
 
 import android.content.Context
-import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.sistemamovimiento.data.local.AppDatabase
@@ -9,36 +8,46 @@ import com.example.sistemamovimiento.network.RetrofitClient
 import com.example.sistemamovimiento.repository.EventRepository
 import com.example.sistemamovimiento.util.NotificationHelper
 
-class MotionWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
+class MotionWorker(
+    context: Context,
+    workerParams: WorkerParameters
+) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        try {
-            val db = AppDatabase.getDatabase(applicationContext)
-            val dao = db.eventDao()
-            val repo = EventRepository(RetrofitClient.instance, dao)
+        return try {
+            val context = applicationContext
 
-            val previous = dao.getLastEvent() // puede ser null
-            val current = repo.fetchAndSaveLastEvent()
 
-            val prevSeq = previous?.sequenceNumber
-            val currSeq = current.sequenceNumber
+            val db = AppDatabase.getDatabase(context)
+            val api = RetrofitClient.instance
+            val repository = EventRepository(api, db.eventDao())
 
-            // si no existe prev o cambió la secuencia -> nuevo evento
-            val isNew = prevSeq == null || prevSeq != currSeq
 
-            if (isNew) {
-                // enviar notificación
-                NotificationHelper.showNewEventNotification(
-                    context = applicationContext,
-                    title = "Se detectó un movimiento nuevo!",
-                    text = "Toca para abrir y ver el evento."
+            val event = repository.fetchAndSaveLastEvent()
+
+
+            if (event.severity == "Alta") {
+
+                NotificationHelper.createChannelIfNeeded(context)
+
+                val activeSensors = mutableListOf<String>()
+                if(event.isHuman == 1) activeSensors.add("HUMANO")
+                if(event.ir == 1) activeSensors.add("IR")
+                if(event.pir == 1) activeSensors.add("Movimiento")
+
+                val body = "¡Alerta Crítica! Detectado: ${activeSensors.joinToString(", ")}"
+
+                NotificationHelper.showHighPriorityNotification(
+                    context,
+                    "Seguridad - Prioridad Alta",
+                    body
                 )
             }
 
-            return Result.success()
+            Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
-            return Result.retry()
+            Result.retry()
         }
     }
 }
