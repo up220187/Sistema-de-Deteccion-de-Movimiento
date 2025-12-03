@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.bumptech.glide.Glide
+import com.example.sistemamovimiento.R
 import com.example.sistemamovimiento.databinding.FragmentDetailBinding
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,32 +28,47 @@ class DetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Configurar botón de atrás en la toolbar
         binding.toolbarDetail.setNavigationOnClickListener { findNavController().navigateUp() }
 
-        // Datos Básicos
+        // 1. Título de Prioridad
         binding.textDet.text = args.title
-        binding.imageFullEvent.setImageResource(args.imageRes)
-        binding.progressBarImage.visibility = View.GONE // En app real aquí cargarías URL
 
-        // Parsear Fecha
+        // 2. Formatear Fecha y Hora
         val tsLong = args.timestamp.toLongOrNull() ?: 0L
         val date = Date(tsLong)
-        binding.FechaDet.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
-        binding.HoraDet.text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(date)
+        // Formato ejemplo: "03 Dic 2025 • 14:30:05"
+        val fmt = SimpleDateFormat("dd MMM yyyy • HH:mm:ss", Locale("es", "ES"))
+        binding.textFechaHora.text = fmt.format(date)
 
-        // Construir lista detallada de sensores
-        val sensors = mutableListOf<String>()
-        if (args.irValue == 1) sensors.add("• Sensor Infrarrojo (IR)")
-        if (args.pirValue == 1) sensors.add("• Sensor de Movimiento (PIR)")
-        if (args.soundValue == 1) sensors.add("• Sensor de Sonido")
-
-        val detalleTexto = if (sensors.isNotEmpty()) {
-            sensors.joinToString("\n")
+        // 3. Cargar IMAGEN usando Glide
+        val url = args.blobUrl
+        if (!url.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(url)
+                .placeholder(R.drawable.securewatch_logo) // Imagen mientras carga
+                .error(R.drawable.securewatch_logo)       // Imagen si falla la carga
+                .into(binding.imageFullEvent)
         } else {
-            "Sin información específica de sensores."
+            // Si no hay URL, mostramos el logo por defecto
+            binding.imageFullEvent.setImageResource(R.drawable.securewatch_logo)
         }
 
-        binding.PrecenciaDet.text = detalleTexto
+        // 4. Indicador de HUMANO DETECTADO
+        // Si args.isHuman es 1, lo mostramos. Si es 0, se oculta (GONE)
+        binding.chipHumanDetected.visibility = if (args.isHuman == 1) View.VISIBLE else View.GONE
+
+
+        // 5. Lógica de los CHIPS DE SENSORES
+        // Mostramos u ocultamos cada chip individualmente
+        binding.chipIr.visibility = if (args.irValue == 1) View.VISIBLE else View.GONE
+        binding.chipPir.visibility = if (args.pirValue == 1) View.VISIBLE else View.GONE
+        binding.chipSound.visibility = if (args.soundValue == 1) View.VISIBLE else View.GONE
+
+        // 6. Manejo del mensaje "Sin datos"
+        // Si NINGUNO está visible, mostramos el texto de "Sin datos específicos"
+        val anySensorActive = (args.irValue == 1 || args.pirValue == 1 || args.soundValue == 1)
+        binding.txtNoSensors.visibility = if (anySensorActive) View.GONE else View.VISIBLE
     }
 
     override fun onDestroyView() {

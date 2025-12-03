@@ -83,7 +83,9 @@ class HistoryFragment : Fragment() {
                         // ¡AQUÍ ESTÁ LA CORRECCIÓN!: Pasamos los valores de la BD
                         irValue = originalEntity.ir,
                         pirValue = originalEntity.pir,
-                        soundValue = originalEntity.sound
+                        soundValue = originalEntity.sound,
+                        isHuman = originalEntity.isHuman,
+                        blobUrl = originalEntity.blobUrl
                     )
                     findNavController().navigate(action)
                 }

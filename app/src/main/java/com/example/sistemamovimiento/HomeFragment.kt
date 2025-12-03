@@ -203,7 +203,9 @@ class HomeFragment : Fragment() {
                 imageRes = R.drawable.securewatch_logo,
                 irValue = event.ir,
                 pirValue = event.pir,
-                soundValue = event.sound
+                soundValue = event.sound,
+                isHuman = event.isHuman,
+                blobUrl = event.blobUrl
             )
             findNavController().navigate(action)
         }

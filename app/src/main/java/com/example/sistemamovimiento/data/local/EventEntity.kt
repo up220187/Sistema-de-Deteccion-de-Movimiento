@@ -12,5 +12,7 @@ data class EventEntity(
     val timestamp: Long,
     val enqueuedTime: String,
     val sequenceNumber: Int,
-    val severity: String   // <-- AGREGADO
+    val severity: String,
+    val isHuman: Int = 0,
+    val blobUrl: String? = null
 )

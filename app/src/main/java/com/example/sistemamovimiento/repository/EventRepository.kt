@@ -40,10 +40,12 @@ class EventRepository(
             ir = body.ir,
             pir = body.pir,
             sound = body.sound,
-            timestamp = body.ts,
+            timestamp = body.timestamp,
             enqueuedTime = response.data.enqueuedTime,
             sequenceNumber = response.data.sequenceNumber,
-            severity = severity
+            severity = severity,
+            isHuman = body.isHuman,
+            blobUrl = body.blobUrl
         )
 
         dao.insertEvent(entity)
