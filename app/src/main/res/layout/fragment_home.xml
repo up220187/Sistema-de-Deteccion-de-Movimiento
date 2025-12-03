@@ -22,7 +22,19 @@
             android:background="@color/medium_blue"
             app:menu="@menu/main_menu"
             app:title="SecureWatch"
-            app:titleTextColor="@color/white"/>
+            app:titleTextColor="@color/white" />
+
+        <ImageView
+            android:id="@+id/icon_no_internet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_wifi_off"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            app:tint="#FF5252"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- SWIPE REFRESH LAYOUT (Envuelve al ScrollView) -->
